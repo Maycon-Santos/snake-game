@@ -24,3 +24,5 @@ gulp.task('default', ['js', 'watch']);
 gulp.task('watch', function () {
     gulp.watch('src/js/**/*.js', ['js']);
 });
+
+// npm install --save-dev gulp gulp-sourcemaps gulp-babel gulp-concat gulp-uglify babel-cli babel-core
