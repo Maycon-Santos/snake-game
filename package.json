@@ -1,0 +1,15 @@
+{
+  "name": "io.mayconsantos.snake",
+  "version": "1.0.0",
+  "displayName": "Snake",
+  "cordova": {
+    "platforms": [
+      "browser",
+      "android"
+    ]
+  },
+  "dependencies": {
+    "cordova-android": "^7.0.0",
+    "cordova-browser": "^5.0.3"
+  }
+}

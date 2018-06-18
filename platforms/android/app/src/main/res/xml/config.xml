@@ -9,6 +9,5 @@
     </author>
     <content src="index.html" />
     <access origin="*" />
-    <engine name="browser" spec="^5.0.3" />
-    <engine name="android" spec="^7.0.0" />
+    <preference name="loglevel" value="DEBUG" />
 </widget>
