@@ -1,11 +1,53 @@
 <!DOCTYPE html>
-<html>
-    <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no, width=device-width">
-        <title>Blank App</title>
-    </head>
-    <body>
-        <script type="text/javascript" src="cordova.js"></script>
-    </body>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Snake</title>
+    <script type="text/javascript" src="cordova.js"></script>
+    <style>
+        @font-face {
+            font-family: PressStart2P;
+            src: url(fonts/PressStart2P.ttf);
+        }
+
+        * {margin: 0; padding: 0;}
+
+        html,body{ width: 100%; height: 100%;}
+
+        body{
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #7da278;
+        }
+
+        #gameSnake{
+            display: block;
+            margin: auto;
+            letter-spacing: 1.5px;
+            background: #9ccb95;
+        }
+
+    </style>
+</head>
+<body>
+    
+    <canvas id="gameSnake">Seu dispositivo não é compatível</canvas>
+
+    <script src="js/snakeGame.js"></script>
+
+    <script>
+        
+        var canvas = document.querySelector('#gameSnake');
+        var game = new Game(canvas);
+
+        console.log(game);
+
+        console.log(chrome.app);
+
+    </script>
+
+</body>
 </html>
