@@ -23,7 +23,7 @@ function Game(canvas){
     this.engine = new Engine(this);
     this.engine.add(this);
 
-    this.rules = new gameRules(this);
+    new gameRules(this);
 
     this.addPlayers();
     this.addFoods();

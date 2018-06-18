@@ -3,16 +3,18 @@ var gameProps = {
 
     snakes: {
         speed: 15,
-        initialSize: 10,
-        bodyStart: [7, 4, 'left'],
-        initialDirection: 'right',
+        initialSize: 3,
+        bodyStart: [7, 4, "left"],
+        initialDirection: "right",
         reverse: false,
 
         players: [
             {
                 color: "#000000",
-                bodyStart: [8, 4, 'up'],
-                keyMap: {left: "ArrowLeft", right: "ArrowRight", up: "ArrowUp", down: "ArrowDown"}
+                bodyStart: [60, 30, 'down'],
+                initialDirection: 'left',
+                keyMap: {left: "ArrowLeft", right: "ArrowRight", up: "ArrowUp", down: "ArrowDown"},
+                touchMap: {left: "swipeLeft", right: "swipeRight", up: "swipeUp", down: "swipeDown"}
             },
             {
                 color: "#ff0000",

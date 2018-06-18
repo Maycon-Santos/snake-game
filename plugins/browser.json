@@ -11,9 +11,5 @@
       "PACKAGE_NAME": "io.mayconsantos.snake"
     }
   },
-  "dependent_plugins": {},
-  "modules": [],
-  "plugin_metadata": {
-    "cordova-plugin-browsersync": "0.1.7"
-  }
+  "dependent_plugins": {}
 }

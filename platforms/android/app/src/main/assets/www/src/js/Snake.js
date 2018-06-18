@@ -59,7 +59,7 @@ function Snake(game, id){
     });
 
     game.engine.add(this);
-    snakeControls(this, this.playerProps.keyMap);
+    const snakeControls = new SnakeControls(this, this.playerProps.keyMap, this.playerProps.touchMap || false);
 
     var progressMove = 0;
     const movement = (deltaTime) => {
@@ -68,6 +68,8 @@ function Snake(game, id){
         let progress = deltaTime * speed;
     
         if(~~progress <= ~~progressMove) return;
+
+        snakeControls.currentMovement();
 
         progressMove = progress != speed ? progress : 0;
         
@@ -129,24 +131,30 @@ Snake.prototype.newBody = function(){
 
         this.body.push([]);
 
-        let xPos = from[0], yPos = from[1];
+        let newPos = [...from];
 
         switch(to){
 
             case 'right':
             case 'left':
-                xPos = to == 'right' ? from[0]+i : from[0]-i;
+                newPos[0] = to == 'right' ? from[0]+i : from[0]-i;
                 break;
 
             case 'up':
             case 'down':
-                yPos = to == 'down' ? from[1]+i : from[1]-i;
+                newPos[1] = to == 'down' ? from[1]+i : from[1]-i;
                 break;
 
         }
 
-        this.body[i].push(xPos); // X
-        this.body[i].push(yPos); // Y
+        for (let axis = 0; axis <= 1; axis++) {
+
+            if(newPos[axis] < 0) newPos[axis] = gameProps.tiles[axis] - Math.abs(newPos[axis]);
+            if(newPos[axis] >= gameProps.tiles[axis]) newPos[axis] = newPos[axis] - gameProps.tiles[axis];
+            
+            this.body[i].push(newPos[axis]);
+            
+        }
 
     }
 
