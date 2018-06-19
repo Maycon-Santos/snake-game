@@ -1,4 +1,4 @@
-function SnakeControls(snake){
+function SnakeControls(snake, game){
 
     var rowMovements = [];
 
@@ -20,7 +20,7 @@ function SnakeControls(snake){
     window.addEventListener('keydown', e => rowMovements.push(keyMap.direction(e.key)));
     
     // Touch devices 
-    let touchArea = snake.playerProps.touchArea, lockTouchmove = {};
+    let touchArea = snake.playerProps.touchArea;
     let touchstart = {}, touchmove = {}, sensibilityTouch = gameProps.snakes.sensibilityTouch;
     const directions = [["left", "right"], ["up", "down"]];
     const orientationMap = {0: "portrait-primary", 180: "portrait-secondary", 90: "landscape-primary", "-90": "landscape-secondary"};
@@ -51,7 +51,7 @@ function SnakeControls(snake){
 
         if(Math.abs(dragged[touchAxis]) >= sensibilityTouch){
             rowMovements.push(directions[touchAxis][moveIndex]);
-            lockTouchmove[touchedArea] = true;
+            touchstart[touchedArea] = [...touchmove[touchedArea]];
         }
 
     }
@@ -61,8 +61,7 @@ function SnakeControls(snake){
     if(touchArea){
         for (const area in $touchArea) {
             $touchArea[area].addEventListener('touchstart', e => touchstart[area] = touchPos(e));
-            $touchArea[area].addEventListener('touchmove', e => { touchmove[area] = touchPos(e); !lockTouchmove[area] && touchHandle(area); });
-            $touchArea[area].addEventListener('touchend', e => lockTouchmove[area] = false);
+            $touchArea[area].addEventListener('touchmove', e => { touchmove[area] = touchPos(e); touchHandle(area); });
         }
     }
 

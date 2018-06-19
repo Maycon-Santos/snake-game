@@ -59,7 +59,7 @@ function Snake(game, id){
     });
 
     game.engine.add(this);
-    const snakeControls = new SnakeControls(this);
+    const snakeControls = new SnakeControls(this, game);
 
     var progressMove = 0;
     const movement = (deltaTime) => {

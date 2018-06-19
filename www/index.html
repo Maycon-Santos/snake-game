@@ -29,12 +29,19 @@
             background: #9ccb95;
         }
 
+        #gestureViewer canvas{
+            position: absolute;
+            left: 0;
+            top: 0;
+        }
+
         #touch-areas{
             position: absolute;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
+            z-index: 9;
         }
 
         #touch-areas div{
@@ -51,6 +58,7 @@
         <div id="left"></div>
         <div id="right"></div>
     </div>
+    <div id="gestureViewer"></div>
     <canvas id="gameSnake">Seu dispositivo não é compatível</canvas>
 
     <script src="js/snakeGame.js"></script>
@@ -61,6 +69,8 @@
         var game = new Game(canvas);
 
         console.log(game);
+
+        gestureViewer();
 
     </script>
 
