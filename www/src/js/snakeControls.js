@@ -1,103 +1,77 @@
-function SnakeControls(snake, _keysMap, _touchMap){
+function SnakeControls(snake){
 
-    var keyMap = _keysMap ? [Object.keys(_keysMap), Object.values(_keysMap)] : _keysMap,
-        touchMap = _touchMap ? [Object.keys(_touchMap), Object.values(_touchMap)] : _touchMap,
-        orientation = null,
-        rowMovements = [];
+    var rowMovements = [];
 
-    const getOrientation = () => {
-        switch (window.orientation) {  
-            case 0:
-                orientation = 'portrait';
-                break; 
+    var $touchAreas = document.querySelector('#touch-areas');
+    var $touchArea = {left: $touchAreas.querySelector('#left'), right: $touchAreas.querySelector('#right')};
 
-            case 180:
-                orientation = 'portrait-upsideDown';
-                break; 
+    // Keyboard
+    var keyMap = (map => keyMap = {
 
-            case -90:
-                orientation = 'landscape-clockwise';
-                break;  
+        directions: Object.keys(map),
+        keys: Object.values(map),
 
-            case 90:
-                orientation = 'landscape';
-                break;
+        direction: function(key){
+            return this.directions[ this.keys.indexOf(key) ];
+        }
+
+    })(snake.playerProps.keyMap);
+
+    window.addEventListener('keydown', e => rowMovements.push(keyMap.direction(e.key)));
+    
+    // Touch devices 
+    let touchArea = snake.playerProps.touchArea, lockTouchmove = {};
+    let touchstart = {}, touchmove = {}, sensibilityTouch = gameProps.snakes.sensibilityTouch;
+    const directions = [["left", "right"], ["up", "down"]];
+    const orientationMap = {0: "portrait-primary", 180: "portrait-secondary", 90: "landscape-primary", "-90": "landscape-secondary"};
+
+    const getOrientation = () => screen.msOrientation || (screen.orientation || screen.mozOrientation || {}).type || orientationMap[window.orientation];
+    let orientation = getOrientation();
+    window.addEventListener('orientationchange', () => orientation = getOrientation());
+
+    const touchHandle = touchedArea => {
+
+        let dragged = [[], []].map((_, axis) => touchstart[touchedArea][axis] - touchmove[touchedArea][axis]);
+
+        if(isLumia){
+            if(orientation === "landscape-primary") dragged[0] = -dragged[0];
+            else if(orientation === "landscape-secondary") dragged[1] = -dragged[1];
+            if(orientation.indexOf('landscape') > -1) dragged.reverse();
+
+            if(orientation === "portrait-secondary"){
+                dragged[0] = -dragged[0];
+                dragged[1] = -dragged[1];
+            }
+        }
+
+        if(touchedArea != touchArea && touchArea != 'all') return;
+
+        let touchAxis = +(Math.abs(dragged[0]) < Math.abs(dragged[1])),
+            moveIndex = +(dragged[touchAxis] < 0);
+
+        if(Math.abs(dragged[touchAxis]) >= sensibilityTouch){
+            rowMovements.push(directions[touchAxis][moveIndex]);
+            lockTouchmove[touchedArea] = true;
+        }
+
+    }
+
+    const touchPos = e => [e.changedTouches[0].pageX, e.changedTouches[0].pageY];
+
+    if(touchArea){
+        for (const area in $touchArea) {
+            $touchArea[area].addEventListener('touchstart', e => touchstart[area] = touchPos(e));
+            $touchArea[area].addEventListener('touchmove', e => { touchmove[area] = touchPos(e); !lockTouchmove[area] && touchHandle(area); });
+            $touchArea[area].addEventListener('touchend', e => lockTouchmove[area] = false);
         }
     }
 
+    document.ontouchmove = function(e){ e.preventDefault(); } // Disable page scroll
 
-    window.addEventListener('orientationchange', getOrientation);
-    getOrientation();
-
-    window.addEventListener('keydown', function(e){
-
-        var key = keyMap[1].indexOf(e.key);
-        if(key > -1) rowMovements.push(keyMap[0][key]);
-
-    });
-
-    var touchstart = [], touchmovedMax = [], touchend = [];
-    touchMap && window.addEventListener('touchstart', e => touchstart = [e.changedTouches[0].screenX, e.changedTouches[0].screenY]);
-
-    var moved = [0, 0], lastMoved = [0, 0];
-    touchMap && window.addEventListener('touchmove', e => {
-
-        var touch, screen = [e.changedTouches[0].screenX, e.changedTouches[0].screenY];
-
-        if(screen[0] > lastMoved[0]) moved[0]++;
-
-        if(screen[1] > lastMoved[1]) moved[1]++;
-
-        if(screen[0] < lastMoved[0]) moved[0]--;
-
-        if(screen[1] < lastMoved[1]) moved[1]--;
-
-        if(orientation == 'landscape'){
-            moved[0] = -moved[0];
-            dragged.reverse();
-
-        }else if(orientation == 'landscape-clockwise'){
-            moved[1] = -moved[1];
-            dragged.reverse();
-
-        }else if(orientation == 'portrait-upsideDown'){
-            moved[0] = -moved[0];
-            moved[1] = -moved[1];
-        }
-
-        if(moved[0] <= -10){
-            touch = touchMap[1].indexOf('swipeLeft');
-            moved = [0, 0];
-        }
-
-        if(moved[0] >= 10){
-            touch = touchMap[1].indexOf('swipeRight');
-            moved = [0, 0];
-        }
-
-        if(moved[1] <= -10){
-            touch = touchMap[1].indexOf('swipeUp');
-            moved = [0, 0];
-        }
-
-        if(moved[1] >= 10){
-            touch = touchMap[1].indexOf('swipeDown');
-            moved = [0, 0];
-        }
-
-        keyMap[0][touch] && rowMovements[0] != keyMap[0][touch] && rowMovements.push(keyMap[0][touch]);
-
-        lastMoved = screen;
-
-    });
-
-    touchMap && window.addEventListener('touchend', e => {
-
-        moved = lastMoved = [0, 0];
-        
-    });
-
+    // Set current movement
     this.currentMovement = () => {
+
+        rowMovements = rowMovements.filter(Boolean);
 
         if(!rowMovements[0]) return;
         snake.direction = rowMovements[0];

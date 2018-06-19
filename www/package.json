@@ -3,8 +3,7 @@
   "version": "1.0.0",
   "description": "A simple snake game with javascript.",
   "main": "gulpfile.js",
-  "dependencies": {
-  },
+  "dependencies": {},
   "devDependencies": {
     "babel-cli": "^6.26.0",
     "gulp": "^3.9.1",

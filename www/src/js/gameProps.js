@@ -3,29 +3,31 @@ var gameProps = {
 
     snakes: {
         speed: 15,
-        initialSize: 3,
+        initialSize: 13,
         bodyStart: [7, 4, "left"],
         initialDirection: "right",
         reverse: false,
+        sensibilityTouch: 20, // the higher, the less sensitive
 
         players: [
             {
                 color: "#000000",
-                bodyStart: [60, 30, 'down'],
-                initialDirection: 'left',
+                bodyStart: [60, 30, 'up'],
+                initialDirection: 'right',
                 keyMap: {left: "ArrowLeft", right: "ArrowRight", up: "ArrowUp", down: "ArrowDown"},
-                touchMap: {left: "swipeLeft", right: "swipeRight", up: "swipeUp", down: "swipeDown"}
+                touchArea: "right"
             },
             {
                 color: "#ff0000",
                 bodyStart: [6, 6, 'left'],
-                keyMap: {left: "a", right: "d", up: "w", down: "s"}
+                keyMap: {left: "a", right: "d", up: "w", down: "s"},
+                touchArea: "left"
             },
-            {
-                color: "#00ff00",
-                bodyStart: [7, 8, 'left'],
-                keyMap: {left: "j", right: "l", up: "i", down: "k"}
-            }
+            // {
+            //     color: "#00ff00",
+            //     bodyStart: [7, 8, 'left'],
+            //     keyMap: {left: "j", right: "l", up: "i", down: "k"}
+            // }
         ]
     },
 

@@ -13,7 +13,7 @@
 
         * {margin: 0; padding: 0;}
 
-        html,body{ width: 100%; height: 100%; touch-action: none;}
+        html,body{ width: 100%; height: 100%; touch-action: none; overflow: hidden;}
 
         body{
             display: flex;
@@ -29,10 +29,28 @@
             background: #9ccb95;
         }
 
+        #touch-areas{
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+        }
+
+        #touch-areas div{
+            width: 50%;
+            height: 100%;
+            float: left;
+        }
+
     </style>
 </head>
 <body>
     
+    <div id="touch-areas">
+        <div id="left"></div>
+        <div id="right"></div>
+    </div>
     <canvas id="gameSnake">Seu dispositivo não é compatível</canvas>
 
     <script src="js/snakeGame.js"></script>

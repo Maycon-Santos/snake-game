@@ -59,7 +59,7 @@ function Snake(game, id){
     });
 
     game.engine.add(this);
-    const snakeControls = new SnakeControls(this, this.playerProps.keyMap, this.playerProps.touchMap || false);
+    const snakeControls = new SnakeControls(this);
 
     var progressMove = 0;
     const movement = (deltaTime) => {
