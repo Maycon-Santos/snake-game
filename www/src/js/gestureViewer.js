@@ -22,7 +22,7 @@ function gestureViewer(){
 
     window.addEventListener('touchend', () => {
         ctx.closePath();
-        setTimeout(() => ctx.clearRect(0, 0, $canvas.width, $canvas.height), 500);
+        setTimeout(() => ctx.clearRect(0, 0, $canvas.width, $canvas.height), 200);
     });
 
     const canvasFullSize = () => {
