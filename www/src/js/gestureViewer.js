@@ -22,14 +22,14 @@ function gestureViewer(){
 
     window.addEventListener('touchend', () => {
         ctx.closePath();
-        ctx.clearRect(0, 0, $canvas.width, $canvas.height);
+        setTimeout(() => ctx.clearRect(0, 0, $canvas.width, $canvas.height), 500);
     });
 
     const canvasFullSize = () => {
         $canvas.width = window.innerWidth;
         $canvas.height = window.innerHeight;
     }
-    
+
     canvasFullSize();
     window.addEventListener('resize', canvasFullSize);
 }
