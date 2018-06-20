@@ -12,4 +12,6 @@
     <plugin name="cordova-plugin-browsersync" spec="^1.1.0" />
     <engine name="browser" spec="^5.0.3" />
     <engine name="android" spec="^7.0.0" />
+    <preference name="windows-target-version" value="10.0" />
+    <preference name="windows-phone-target-version" value="10.0" />
 </widget>
