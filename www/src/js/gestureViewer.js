@@ -6,22 +6,48 @@ function gestureViewer(){
 
     $gestureViewer.appendChild($canvas);
 
-    window.addEventListener('touchstart', e => {
+    var ballPoints = {};
+    var counter = 0;
+
+    const drawLine = (x0, y0, x1, y1) => {
+        ctx.strokeStyle = "#7da278";
+        ctx.lineCap = "round";
+	    ctx.lineWidth = 8;
         ctx.beginPath();
-        ctx.moveTo(e.changedTouches[0].pageX, e.changedTouches[0].pageY);
+        ctx.moveTo(x0, y0);
+        ctx.lineTo(x1, y1);
+        ctx.stroke();
+    }
+
+    window.addEventListener('touchstart', e => {
+        for(let i = e.changedTouches.length - 1; i >= 0; i--){
+            const touch = e.changedTouches[i];
+            var ballPoint = {
+                x: touch.pageX,
+                y: touch.pageY
+            }
+            ballPoints[touch.identifier || ++counter] = ballPoint;
+            drawLine(ballPoint.x - 1, ballPoint.y, ballPoint.x, ballPoint.y);
+        }
     });
 
     window.addEventListener('touchmove', e => {
-        ctx.lineTo(e.changedTouches[0].pageX, e.changedTouches[0].pageY);
+        for(let i = e.changedTouches.length - 1; i >= 0; i--){
+            const touch = e.changedTouches[i];
+            var ballPoint = ballPoints[touch.identifier || counter],
+                x = touch.pageX, y = touch.pageY;
 
-        ctx.strokeStyle = "#7da278";
-        ctx.lineWidth = 8;
-
-        ctx.stroke();
+            drawLine(ballPoint.x, ballPoint.y, x, y);
+            ballPoint.x = x;
+            ballPoint.y = y;
+        }
     });
 
-    window.addEventListener('touchend', () => {
-        ctx.closePath();
+    window.addEventListener('touchend', e => {
+        for(let i = e.changedTouches.length - 1; i >= 0; i--){
+            const touch = e.changedTouches[i];
+            delete ballPoints[touch.identifier || counter];
+        }
         setTimeout(() => ctx.clearRect(0, 0, $canvas.width, $canvas.height), 200);
     });
 

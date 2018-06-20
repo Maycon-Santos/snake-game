@@ -18,3 +18,9 @@ Array.prototype.sumWith = function(...arrays){
 
     return newArray;
 }
+
+Array.prototype.lastItem = function(){
+
+    return this[this.length - 1];
+
+}

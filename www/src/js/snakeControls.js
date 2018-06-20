@@ -47,10 +47,11 @@ function SnakeControls(snake, game){
         if(touchedArea != touchArea && touchArea != 'all') return;
 
         let touchAxis = +(Math.abs(dragged[0]) < Math.abs(dragged[1])),
-            moveIndex = +(dragged[touchAxis] < 0);
+            moveIndex = +(dragged[touchAxis] < 0),
+            direction = directions[touchAxis][moveIndex];
 
         if(Math.abs(dragged[touchAxis]) >= sensibilityTouch){
-            rowMovements.push(directions[touchAxis][moveIndex]);
+            if(direction != rowMovements.lastItem() && direction != snake.direction) rowMovements.push(direction);
             touchstart[touchedArea] = [...touchmove[touchedArea]];
         }
 

@@ -7,7 +7,7 @@ var gameProps = {
         bodyStart: [7, 4, "left"],
         initialDirection: "right",
         reverse: false,
-        sensibilityTouch: 50, // the higher, the less sensitive
+        sensibilityTouch: 30, // the higher, the less sensitive
 
         players: [
             {
