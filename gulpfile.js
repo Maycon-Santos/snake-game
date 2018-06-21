@@ -6,7 +6,7 @@ const uglify = require('gulp-uglify');
 const removeUseStrict = require("gulp-remove-use-strict");
  
 gulp.task('js', () =>
-    gulp.src(['src/js/**/*.js', '!src/js/serviceWorker/**/*.js'])
+    gulp.src(['app/src/js/**/!(install-SW)*.js', '!app/src/js/serviceWorker/**/*.js', 'app/src/js/install-SW.js'])
         .pipe(sourcemaps.init())
         .pipe(babel({
             presets: ['env']
@@ -14,7 +14,7 @@ gulp.task('js', () =>
         .pipe(concat('snakeGame.js'))
         .pipe(uglify())
         .pipe(sourcemaps.write('.'))
-        .pipe(gulp.dest('js'))
+        .pipe(gulp.dest('app/js'))
 );
 
 gulp.task('sw', () =>
@@ -26,7 +26,7 @@ gulp.task('sw', () =>
         .pipe(concat('serviceWorker.js'))
         .pipe(removeUseStrict())
         .pipe(sourcemaps.write('.'))
-        .pipe(gulp.dest(''))
+        .pipe(gulp.dest('app'))
 );
 
 // Executa todas as funções
@@ -35,7 +35,7 @@ gulp.task('default', ['js', 'sw', 'watch']);
 
 // Watch
 gulp.task('watch', function () {
-    gulp.watch('src/js/**/*.js', ['js', 'sw']);
+    gulp.watch('app/src/js/**/*.js', ['js', 'sw']);
 });
 
 // npm install --save-dev gulp gulp-sourcemaps gulp-babel gulp-concat gulp-uglify babel-cli babel-core babel-preset-env

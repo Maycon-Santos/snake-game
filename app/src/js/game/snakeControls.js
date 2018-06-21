@@ -9,7 +9,7 @@ function SnakeControls(snake, game){
     var keyMap = (map => keyMap = {
 
         directions: Object.keys(map),
-        keys: Object.values(map),
+        keys: Object.keys(map).map(k => map[k]),
 
         direction: function(key){
             return this.directions[ this.keys.indexOf(key) ];
