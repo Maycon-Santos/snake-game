@@ -1,35 +1,26 @@
 {
-  "name": "io.mayconsantos.snake",
+  "name": "snake-game",
   "version": "1.0.0",
-  "displayName": "Snake",
-  "cordova": {
-    "platforms": [
-      "browser",
-      "android"
-    ],
-    "plugins": {
-      "cordova-plugin-browsersync": {}
-    }
+  "description": "A simple snake game with javascript.",
+  "main": "gulpfile.js",
+  "dependencies": {},
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "gulp": "^3.9.1",
+    "gulp-babel": "^7.0.1",
+    "gulp-concat": "^2.6.1",
+    "gulp-sourcemaps": "^2.6.4",
+    "gulp-uglify": "^3.0.0",
+    "babel-core": "^6.26.3",
+    "babel-preset-env": "^1.7.0"
   },
-  "dependencies": {
-    "cordova-android": "^7.0.0",
-    "cordova-browser": "^5.0.3",
-    "cordova-plugin-browsersync": "^1.1.0"
-  },
-  "description": "## Usage",
-  "main": "index.js",
-  "devDependencies": {},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Maycon-Santos/snake-game.git"
+    "url": "snake-game"
   },
   "author": "Maycon Santos",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/Maycon-Santos/snake-game/issues"
-  },
-  "homepage": "https://github.com/Maycon-Santos/snake-game#readme"
+  "license": "ISC"
 }
