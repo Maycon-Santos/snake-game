@@ -29,6 +29,7 @@ function Game(canvas){
     this.addFoods();
 
     this.newGame();
+    gestureViewer();
 
     this.resizeCanvas();
     this.engine.run();

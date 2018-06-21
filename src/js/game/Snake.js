@@ -73,9 +73,9 @@ function Snake(game, id){
 
         progressMove = progress != speed ? progress : 0;
         
-        this.increase < 1 ? this.body.pop() : this.increase--;
         this.body.splice(0, 0, nextPos());
-
+        this.increase < 1 ? this.body.pop() : this.increase--;
+        
     }
 
     const nextPos = () => {

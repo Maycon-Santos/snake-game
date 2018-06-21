@@ -73,9 +73,9 @@ function SnakeControls(snake, game){
 
         rowMovements = rowMovements.filter(Boolean);
 
-        if(!rowMovements[0]) return;
+        if(!rowMovements.length) return;
         snake.direction = rowMovements[0];
-        rowMovements.splice(0, 1);
+        rowMovements && rowMovements.splice(0, 1);
 
     }
 

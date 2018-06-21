@@ -3,7 +3,7 @@ var gameProps = {
 
     snakes: {
         speed: 15,
-        initialSize: 13,
+        initialSize: 1,
         bodyStart: [7, 4, "left"],
         initialDirection: "right",
         reverse: false,
