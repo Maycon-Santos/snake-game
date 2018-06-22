@@ -1,0 +1,50 @@
+#game{
+    #interface{
+        #login{
+            margin: 30px 0 20px 0;
+            form{
+                display: flex;
+                justify-content: space-between;
+
+                input[type="text"]{
+                    width: 160px;
+                    height: 40px;
+
+                    padding: 0 20px;
+
+                    border: 3px $green-002 solid;
+                    border-radius: 3px;
+
+                    background: $white;
+
+                    &:focus{
+                        background: $white-actived;
+                    }
+                }
+
+                input[type="button"]{
+                    width: 80px;
+                    height: 45px;
+                    
+                    border: none;
+
+                    color: $white;
+                    font-size: .8rem;
+
+                    background: $green-002;
+                }
+
+                input[type="text"]{
+                    &:valid + input[type="button"]{
+                        color: $white-actived;
+                        background: $green-003;
+                        &:hover{
+                            cursor: pointer;
+                            background: $green-005;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

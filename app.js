@@ -1,32 +1,55 @@
-const { app, BrowserWindow } = require('electron');
+const electron = require('electron');
 const express = require('express');
-const server = express();
+const app = express();
+const port = 8000;
+const server = app.listen(port);
 
-const port = 3000;
+app.use(express.static('static'));
 
-app.on('ready', () => {
+const io = require('socket.io')(server);
 
-    server.use(express.static('app'));
+app.get('/', (req, res) => res.sendFile(__dirname + '/app/index.html'));
 
-    server.listen(port, () => {
+var mainWindow;
 
-        console.log(`Servidor rodando na porta ${port}`);
+/*
+====================================
+====================================
+*/
 
-        let mainWindow = new BrowserWindow({
-            width: 1024,
-            height: 720
-        });
-    
-        mainWindow.setMenuBarVisibility(false);
-    
-        mainWindow.webContents.openDevTools();
-    
-        mainWindow.loadURL(`http://localhost:${port}`);
+var players = [];
+electron.app.on('ready', () => {
 
+    mainWindow = new electron.BrowserWindow({
+        width: 1024,
+        height: 720
     });
+
+    mainWindow.setMenuBarVisibility(false);
+
+    mainWindow.webContents.openDevTools();
+
+    app.use(express.static('static'));
+    
+    mainWindow.loadURL(`http://localhost:${port}`);
 
 });
 
-app.on('window-all-closed', () => {
-    app.quit();
+electron.app.on('window-all-closed', () => {
+    electron.app.quit();
+});
+io.on('connection', socket => {
+
+    socket.on('login', playerNickname => {
+
+        players.push({
+            id: players.length,
+            nickname: playerNickname,
+            color: '#000000'
+        });
+    
+        socket.emit('logged', {players: players});
+    
+    });
+
 });

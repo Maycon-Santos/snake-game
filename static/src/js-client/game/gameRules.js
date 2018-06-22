@@ -55,6 +55,8 @@ function gameRules(game){
 
     this.update = () => {
 
+        if(game.status != 'playing') return;
+
         snakeColision();
         snakeAteFood();
 

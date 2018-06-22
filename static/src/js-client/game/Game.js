@@ -20,15 +20,16 @@ function Game(canvas){
     this.players = [];
     this.foods = [];
 
+    this.status = 'toStart';
     this.engine = new Engine(this);
-    this.engine.add(this);
+    this.interface = new Interface(this);
 
     new gameRules(this);
 
     this.addPlayers();
     this.addFoods();
 
-    this.newGame();
+    //this.newGame();
     gestureViewer();
 
     this.resizeCanvas();
@@ -37,6 +38,8 @@ function Game(canvas){
 }
 
 Game.prototype.newGame = function(){
+
+    this.status = "playing";
 
     this.for('foods', food => {
         food.create();
