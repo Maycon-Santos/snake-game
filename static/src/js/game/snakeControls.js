@@ -6,7 +6,7 @@ function SnakeControls(snake, game){
     var $touchArea = {left: $touchAreas.querySelector('#left'), right: $touchAreas.querySelector('#right')};
 
     // Keyboard
-    var keyMap = (map => keyMap = {
+    var keyMap = (map => map ? {
 
         directions: Object.keys(map),
         keys: Object.keys(map).map(k => map[k]),
@@ -15,12 +15,12 @@ function SnakeControls(snake, game){
             return this.directions[ this.keys.indexOf(key) ];
         }
 
-    })(snake.playerProps.keyMap);
+    } : undefined)(gameProps.snakes.keyMaps[snake.id]);
 
-    window.addEventListener('keydown', e => rowMovements.push(keyMap.direction(e.key)));
+    keyMap && window.addEventListener('keydown', e => rowMovements.push(keyMap.direction(e.key)));
     
     // Touch devices 
-    let touchArea = snake.playerProps.touchArea;
+    let touchArea = 'all';
     let touchstart = {}, touchmove = {}, sensibilityTouch = gameProps.snakes.sensibilityTouch;
     const directions = [["left", "right"], ["up", "down"]];
     const orientationMap = {0: "portrait-primary", 180: "portrait-secondary", 90: "landscape-primary", "-90": "landscape-secondary"};

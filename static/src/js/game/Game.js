@@ -17,6 +17,8 @@ function Game(canvas){
         writable: false
     });
 
+    this.playersInTheRoom = [];
+
     this.players = [];
     this.foods = [];
 
@@ -30,26 +32,24 @@ function Game(canvas){
         console.log(data);
     });
 
-    new gameRules(this);
+    //new gameRules(this);
 
-    this.addPlayers();
-    this.addFoods();
+    //this.addFoods();
 
-    //this.newGame();
     gestureViewer();
 
-    this.resizeCanvas();
     this.engine.run();
 
+    this.socketEvents();
 }
 
 Game.prototype.newGame = function(){
 
     this.status = "playing";
 
-    this.for('foods', food => {
-        food.create();
-    });
+    // this.for('foods', food => {
+    //     food.create();
+    // });
 
     this.for('players', player => {
         player.newBody();
@@ -64,12 +64,14 @@ Game.prototype.for = function(object, fn){
 
 Game.prototype.addPlayers = function(){
 
-    let player = new Snake(this, this.players.length);
+    for (let i = this.playersInTheRoom.length - 1; i >= 0 ; i--) {
+        const playerInTheRoom = this.playersInTheRoom[i];
 
-    this.players.push(player);
+        let player = Object.assign(new Snake(this, playerInTheRoom.id), playerInTheRoom.playerProps);
 
-    if(this.players.length < gameProps.snakes.players.length)
-        this.addPlayers();
+        this.players.push(player);
+
+    }
 
 }
 
@@ -98,12 +100,35 @@ Game.prototype.resizeCanvas = function(){
 
 }
 
-Game.prototype.login = function(playerNickname){
+Game.prototype.login = function(playerNickname, callback){
 
-    this.socket.emit('login', playerNickname);
+    this.socket.emit('login', {
+        playerNickname: playerNickname
+    });
 
-    this.socket.on('logged', data => {
-        console.log(data);
+    this.socket.on('logged', data =>{
+
+        if(typeof callback == 'function') callback(data);
+
+        gameProps = Object.assign(gameProps, data.gameProps);
+
+        this.playersInTheRoom = data.players;
+
+        this.resizeCanvas();
+
+    });
+
+}
+
+Game.prototype.socketEvents = function(){
+
+    this.socket.on('start', data => {
+
+        this.interface.closeModal();
+
+        this.addPlayers();
+        this.newGame();
+        
     });
 
 }

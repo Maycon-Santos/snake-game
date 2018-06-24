@@ -8,13 +8,4 @@ app.use(express.static('static'));
 
 const io = require('socket.io')(server);
 
-app.get('/', (req, res) => res.sendFile(__dirname + '/app/index.html'));
-
 var mainWindow;
-
-/*
-====================================
-====================================
-*/
-
-var players = [];

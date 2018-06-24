@@ -14,23 +14,23 @@
     
     <div id="game">
 
-        <div id="interface">
+        <div id="interface" class="login">
             <div class="modal">
                 <header class="logo">Snake<br>Game</header>
                 <div id="login">
                     <form action="javascript:void(0)">
                         <input type="text" name="player_name" required placeholder="Nickname">
-                        <input type="button" value="Login">
+                        <input type="submit" value="Login">
                     </form>
                 </div>
                 <div id="main-menu">
-                    <h4>Hi, Maycao</h4>
+                    <h4 id="welcome"></h4>
                     <nav>
                         <ul>
-                            <li><button>Single player</button></li>
-                            <li><button>Multiplayer</button></li>
-                            <li><button>Multiplayer local</button></li>
-                            <li><button>Online</button></li>
+                            <li><button id="single-player">Single player</button></li>
+                            <li><button id="multiplayer">Multiplayer</button></li>
+                            <li><button id="multiplayer-local">Multiplayer local</button></li>
+                            <li><button id="online">Online</button></li>
                         </ul>
                     </nav>
                 </div>
@@ -60,8 +60,6 @@
         var game = new Game(canvas);
 
         console.log(game);
-
-        game.login('Maycao');
 
     </script>
 

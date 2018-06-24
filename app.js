@@ -8,16 +8,7 @@ app.use(express.static('static'));
 
 const io = require('socket.io')(server);
 
-app.get('/', (req, res) => res.sendFile(__dirname + '/app/index.html'));
-
 var mainWindow;
-
-/*
-====================================
-====================================
-*/
-
-var players = [];
 electron.app.on('ready', () => {
 
     mainWindow = new electron.BrowserWindow({
@@ -38,18 +29,84 @@ electron.app.on('ready', () => {
 electron.app.on('window-all-closed', () => {
     electron.app.quit();
 });
+var gameProps = {
+    tiles: [64, 36], // X, Y
+
+    snakes: {
+        speed: 15,
+        initialSize: 3,
+        initialDirection: "right",
+        reverse: false,
+        sensibilityTouch: 30, // the higher, the less sensitive
+
+        keyMaps: [
+            {left: "ArrowLeft", right: "ArrowRight", up: "ArrowUp", down: "ArrowDown"},
+            {left: "a", right: "d", up: "w", down: "s"}
+        ],
+
+        colors: [
+            '#000000', // Black
+            '#ff0000', // Red
+            '#00ff00', // Green
+            '#0000ff' // Blue
+        ]
+    },
+
+    foods: {
+        qnt: 1,
+
+        types: {
+            normal: {
+                chance: 5,
+                color: '#FFE400'
+            },
+
+            freezer: {
+                chance: 0,
+                color: '#008F30'
+            },
+
+            superSpeed: {
+                chance: 0,
+                color: '#008F30'
+            }
+        }
+
+    }
+
+}
+const newBodyStart = id => [5 * (id+1), 5 * (id+1), 'down'];
+
 io.on('connection', socket => {
 
-    socket.on('login', playerNickname => {
+    var players = [],
+        multiplayerLocalAllow = false;
 
-        players.push({
+    socket.on('login', data => {
+
+        if(players.length && !multiplayerLocalAllow) return;
+
+        let player = {
             id: players.length,
-            nickname: playerNickname,
-            color: '#000000'
+            nickname: data.playerNickname,
+
+            playerProps: {
+                bodyStart: newBodyStart(players.length)
+            }
+        }
+
+        players.push(player);
+
+        socket.emit('logged', {
+            myID: player.id,
+            players: players,
+            gameProps: gameProps
         });
     
-        socket.emit('logged', {players: players});
-    
+    });
+
+    socket.on('single player', () => {
+        socket.emit('start');
     });
 
 });

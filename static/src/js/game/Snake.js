@@ -7,7 +7,9 @@ function Snake(game, id){
     this.collided = false;
     this.killed = false;
 
-    this.playerProps = gameProps.snakes.players[id];
+    this.bodyStart = [0, 0];
+
+    //this.playerProps = gameProps.snakes.players[id];
 
     var directionMap = {
         'left': [-1, 0],
@@ -16,14 +18,14 @@ function Snake(game, id){
         'down': [0, 1]
     }
 
-    var direction = this.playerProps.initialDirection || gameProps.snakes.initialDirection;
+    var direction = gameProps.snakes.initialDirection;
     Object.defineProperty(this, 'direction', {
         get: () => direction,
         set: (to) => {
 
             let directions = Object.keys(directionMap), // X, Y
                 oldDirection = direction,
-                reverse = this.playerProps.reverse || gameProps.snakes.reverse;
+                reverse = gameProps.snakes.reverse;
 
             if(directions.includes(to)) direction = to;
 
@@ -64,7 +66,7 @@ function Snake(game, id){
     var progressMove = 0;
     const movement = (deltaTime) => {
 
-        let speed = this.playerProps.speed || gameProps.snakes.speed;
+        let speed = gameProps.snakes.speed;
         let progress = deltaTime * speed;
     
         if(~~progress <= ~~progressMove) return;
@@ -103,7 +105,7 @@ function Snake(game, id){
 
         if(this.killed) return;
 
-        game.ctx.fillStyle = this.playerProps.color;
+        game.ctx.fillStyle = gameProps.colors[this.id];
 
         this.body.forEach(bodyFragment => {
             game.ctx.fillRect(
@@ -120,13 +122,13 @@ function Snake(game, id){
 
 Snake.prototype.newBody = function(){
 
-    var bodyStart = this.playerProps.bodyStart || gameProps.snakes.bodyStart,
+    var bodyStart = this.bodyStart,
         from = [bodyStart[0], bodyStart[1]],
         to = bodyStart[2];
 
     this.body = [from];
 
-    var initialSize = this.playerProps.initialSize || gameProps.snakes.initialSize;
+    var initialSize = gameProps.snakes.initialSize;
     for (let i = 1; i < initialSize; i++) {
 
         this.body.push([]);

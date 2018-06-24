@@ -6,6 +6,7 @@ const uglify = require('gulp-uglify');
 const removeUseStrict = require("gulp-remove-use-strict");
 const sass = require('gulp-sass');
 const cleanCSS = require('gulp-clean-css');
+const include = require("gulp-include");
  
 gulp.task('js', () =>
     gulp.src(['static/src/js/**/!(install-SW)*.js', '!static/src/js/serviceWorker/**/*.js', 'static/src/js/install-SW.js'])
@@ -34,8 +35,9 @@ gulp.task('sw', () =>
 );
 
 gulp.task('app', () =>
-    gulp.src('app/**/*.js')
+    gulp.src(['app/**/*.js', '!app/game/**/*.js'])
         .pipe(concat('app.js'))
+        .pipe(include())
         .pipe(gulp.dest('.'))
 );
 

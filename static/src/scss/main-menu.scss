@@ -1,7 +1,8 @@
 #game{
     #interface{
+        &:not(.main-menu) #main-menu{ display: none !important; }
         #main-menu{
-            display: none;
+            display: block;
             width: 300px;
 
             h4{
