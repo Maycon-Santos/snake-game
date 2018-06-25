@@ -1,34 +1,19 @@
-function Food(game){
+function Food(game, id){
 
-    var foodTypes = [], type;
+    this.id = id;
+    this.type;
 
     this.position = [];
 
-    for (const key in gameProps.foods.types) {
-        const foodType = gameProps.foods.types[key],
-              chance = foodType.chance;
+    game.engine.add(this);
 
-        for (let i = 0; i < chance; i++) foodTypes.push(foodType);
-    }
-
-    this.create = function(){
-
-        const selectFood = Math.round(Math.random() * (foodTypes.length - 1));
-
-        type = foodTypes[selectFood];
-
-        this.position = [[], []].map((_, axis) => Math.round(Math.random() * (gameProps.tiles[axis] - 1)));
-    
-    }
-
-    this.update = () => {
-    }
+    game.socket.on(`foodUpdate-${id}`, this.update);
 
     this.draw = () => {
 
-        if(game.status != 'playing') return;
+        if(game.status != 'playing' || !this.type) return;
 
-        game.ctx.fillStyle = type.color;
+        game.ctx.fillStyle = this.type.color;
 
         game.ctx.beginPath();
 

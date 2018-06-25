@@ -17,8 +17,16 @@ function Game(canvas){
         writable: false
     });
 
+    var status, $game = canvas.parentNode;
+    Object.defineProperty(this, 'status', {
+        set: newStatus =>
+            $game.className = status = newStatus,
+        get: () => status
+    });
+
     this.playersInTheRoom = [];
 
+    this.id = null;
     this.players = [];
     this.foods = [];
 
@@ -27,14 +35,7 @@ function Game(canvas){
     this.interface = new Interface(this);
     this.socket = io();
 
-    this.socket.emit('connection');
-    this.socket.on('teste', data => {
-        console.log(data);
-    });
-
-    //new gameRules(this);
-
-    //this.addFoods();
+    this.socket.on('teste', t => console.log(t))
 
     gestureViewer();
 
@@ -50,10 +51,6 @@ Game.prototype.newGame = function(){
     // this.for('foods', food => {
     //     food.create();
     // });
-
-    this.for('players', player => {
-        player.newBody();
-    });
 
 }
 
@@ -76,9 +73,8 @@ Game.prototype.addPlayers = function(){
 }
 
 Game.prototype.addFoods = function(){
-    let food = new Food(this);
+    let food = new Food(this, this.foods.length);
 
-    this.engine.add(food);
     this.foods.push(food);
 
     if(this.foods.length < gameProps.foods.qnt)
@@ -112,6 +108,7 @@ Game.prototype.login = function(playerNickname, callback){
 
         gameProps = Object.assign(gameProps, data.gameProps);
 
+        this.id = data.myID;
         this.playersInTheRoom = data.players;
 
         this.resizeCanvas();
@@ -122,13 +119,18 @@ Game.prototype.login = function(playerNickname, callback){
 
 Game.prototype.socketEvents = function(){
 
-    this.socket.on('start', data => {
+    this.socket.on('start', () => {
 
         this.interface.closeModal();
 
         this.addPlayers();
+        this.addFoods();
         this.newGame();
         
+        this.socket.emit('start');
     });
+
+    this.socket.on('newPlayer', player =>
+        this.playersInTheRoom.push(player));
 
 }

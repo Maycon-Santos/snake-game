@@ -8,13 +8,11 @@ html,body{ width: 100%; height: 100%; touch-action: none; overflow: hidden;}
 
 body{
     display: flex;
-    justify-content: center;
-    align-items: center;
     background: $green-002;
 
-    &.toStart{
-        background: $green-001;
-    }
+    // &.toStart{
+    //     background: $green-001;
+    // }
 }
 
 body, button, input[type="button"], input[type="submit"]{

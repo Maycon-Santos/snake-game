@@ -14,8 +14,6 @@ function Engine(game){
 
     }
 
-    const update = (deltaTime) => runFunction('update', deltaTime);
-
     const draw = () => {
         game.ctx.clearRect(0, 0, canvas.width, canvas.height);
         runFunction('draw');
@@ -32,7 +30,6 @@ function Engine(game){
             let deltaTime = (timestamp - start) / 1000;
             deltaTime = Math.min(1, deltaTime);
 
-            update(deltaTime);
             draw();
 
             if(deltaTime >= 1) return engine.run();
@@ -42,6 +39,12 @@ function Engine(game){
 
     }
 
-    this.add = (object) => objects.push(object);
+    this.add = (object) => {
+        objects.push(object);
+        
+        object.update = _object => {
+            for (const key in _object) object[key] = _object[key];
+        }
+    }
 
 }

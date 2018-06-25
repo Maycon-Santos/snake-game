@@ -35,7 +35,7 @@ gulp.task('sw', () =>
 );
 
 gulp.task('app', () =>
-    gulp.src(['app/**/*.js', '!app/game/**/*.js'])
+    gulp.src(['app/**/*.js', '!app/utils/**/*.js', '!app/game/**/*.js'])
         .pipe(concat('app.js'))
         .pipe(include())
         .pipe(gulp.dest('.'))

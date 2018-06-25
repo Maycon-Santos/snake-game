@@ -1,6 +1,11 @@
 function SnakeControls(snake, game){
 
-    var rowMovements = [];
+    //var rowMovements = [];
+
+    const pushMovement = moveTo => {
+        if(!moveTo) return;
+        game.socket.emit(`moveTo`, moveTo);
+    }
 
     var $touchAreas = document.querySelector('#touch-areas');
     var $touchArea = {left: $touchAreas.querySelector('#left'), right: $touchAreas.querySelector('#right')};
@@ -15,9 +20,9 @@ function SnakeControls(snake, game){
             return this.directions[ this.keys.indexOf(key) ];
         }
 
-    } : undefined)(gameProps.snakes.keyMaps[snake.id]);
+    } : undefined)(gameProps.snakes.keyMaps[snake.idLocal]);
 
-    keyMap && window.addEventListener('keydown', e => rowMovements.push(keyMap.direction(e.key)));
+    keyMap && window.addEventListener('keydown', e => pushMovement(keyMap.direction(e.key)));
     
     // Touch devices 
     let touchArea = 'all';
@@ -51,7 +56,7 @@ function SnakeControls(snake, game){
             direction = directions[touchAxis][moveIndex];
 
         if(Math.abs(dragged[touchAxis]) >= sensibilityTouch){
-            if(direction != rowMovements.lastItem() && direction != snake.direction) rowMovements.push(direction);
+            if(direction != rowMovements.lastItem() && direction != snake.direction) pushMovement(direction);
             touchstart[touchedArea] = [...touchmove[touchedArea]];
         }
 
@@ -67,16 +72,5 @@ function SnakeControls(snake, game){
     }
 
     document.ontouchmove = function(e){ e.preventDefault(); } // Disable page scroll
-
-    // Set current movement
-    this.currentMovement = () => {
-
-        rowMovements = rowMovements.filter(Boolean);
-
-        if(!rowMovements.length) return;
-        snake.direction = rowMovements[0];
-        rowMovements && rowMovements.splice(0, 1);
-
-    }
 
 }

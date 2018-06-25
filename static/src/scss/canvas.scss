@@ -1,9 +1,26 @@
 #game{
     position: relative;
-    background: $green-001;
-    canvas{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    > canvas{
         display: block;
         margin: auto;
         letter-spacing: 1.5px;
+
+        transition-property: width, height;
+        transition-duration: .3s;
+        transition-timing-function: ease-in-out;
+
+        background: $green-001;
+    }
+
+    &.toStart{
+        > canvas{
+            width: 100%;
+            height: 100%;
+        }
     }
 }
