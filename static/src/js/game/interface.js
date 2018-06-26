@@ -12,7 +12,8 @@ function Interface(game){
         $submitChooser = $snakeChooser.querySelector('.submit'),
 
         $mainMenu = $interface.querySelector('#main-menu'),
-        $singlePlayer = $mainMenu.querySelector('#single-player');
+        $singlePlayer = $mainMenu.querySelector('#single-player'),
+        $multiplayer = $mainMenu.querySelector('#multiplayer');
 
     this.closeModal = () => $modal.classList.add('closed');
 
@@ -72,6 +73,12 @@ function Interface(game){
 
         game.socket.emit('changeColor', currentColor);
         this.open('main-menu');
+
+    });
+
+    $multiplayer.addEventListener('click', () => {
+
+        game.socket.emit('multiplayer');
 
     });
 

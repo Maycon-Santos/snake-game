@@ -48,4 +48,6 @@ function Engine(){
 
     this.add = (object) => objects.push(object);
 
+    this.clear = () => objects = [];
+
 }

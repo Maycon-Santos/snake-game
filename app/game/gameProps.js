@@ -17,7 +17,11 @@ var gameProps = {
             '#000000', // Black
             '#ff0000', // Red
             '#00ff00', // Green
-            '#0000ff' // Blue
+            '#0000ff', // Blue
+            'Orange',
+            'MidnightBlue',
+            'Magenta',
+            'AliceBlue'
         ]
     },
 

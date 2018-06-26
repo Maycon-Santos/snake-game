@@ -48,15 +48,6 @@ Game.prototype.newGame = function(){
 
     this.status = "playing";
 
-    // this.for('foods', food => {
-    //     food.create();
-    // });
-
-}
-
-Game.prototype.for = function(object, fn){
-    for (let id = this[object].length-1; id >= 0; id--)
-        fn(this[object][id], id);
 }
 
 Game.prototype.addPlayers = function(){
@@ -145,11 +136,12 @@ Game.prototype.socketEvents = function(){
     this.socket.on('playersInTheRoomUpdate', data => {
         var i = data.i;
         delete data.i;
+        this.playersInTheRoom[i].playerProps = Object.assign(this.playersInTheRoom[i].playerProps, data);        
+    });
 
-        this.playersInTheRoom[i] = Object.assign(this.playersInTheRoom[i], data);
-    
-        console.log(this.playersInTheRoom[i]);
-        
+    this.socket.on('delPlayer', i => {
+        delete this.playersInTheRoom[i];
+        this.playersInTheRoom = this.playersInTheRoom.filter(Boolean);
     });
 
 }

@@ -109,6 +109,8 @@ function Engine(){
 
     this.add = (object) => objects.push(object);
 
+    this.clear = () => objects = [];
+
 }
 function Food(game, id){
 
@@ -144,19 +146,21 @@ function Food(game, id){
 function Game(){
 
     this.playersInTheRoom = [];
-    this.players = [];
-    this.foods = [];
 
     this.status = 'toStart';
     this.engine = new Engine(this);
-
-    new GameRules(this);
 
     this.engine.run();
 
 }
 
 Game.prototype.newGame = function(){
+
+    this.players = [];
+    this.foods = [];
+
+    this.engine.clear();
+    new GameRules(this);
 
     this.addPlayers();
     this.addFoods();
@@ -193,12 +197,15 @@ Game.prototype.addPlayers = function(){
 }
 
 Game.prototype.addFoods = function(){
-    let food = new Food(this, this.foods.length);
 
-    this.foods.push(food);
+    for (let i = 0; i < gameProps.foods.qnt; i++) {
+        const element = gameProps.foods.qnt[i];
+        
+        let food = new Food(this, this.foods.length);
+        this.foods.push(food);
 
-    if(this.foods.length < gameProps.foods.qnt)
-        this.addFoods();
+    }
+
 }
 var gameProps = {
     tiles: [64, 36], // X, Y
@@ -219,7 +226,11 @@ var gameProps = {
             '#000000', // Black
             '#ff0000', // Red
             '#00ff00', // Green
-            '#0000ff' // Blue
+            '#0000ff', // Blue
+            'Orange',
+            'MidnightBlue',
+            'Magenta',
+            'AliceBlue'
         ]
     },
 
@@ -495,10 +506,9 @@ io.on('connection', socket => {
 
         let player = {
             id: socket.id,
-            nickname: data.playerNickname,
             
-
             playerProps: {
+                nickname: data.playerNickname,
                 bodyStart: newBodyStart(game.playersInTheRoom.length),
                 color: 0
             }
@@ -512,13 +522,19 @@ io.on('connection', socket => {
             gameProps: gameProps
         });
 
-        socket.broadcast.emit('newPlayer', game.playersInTheRoom);
+        socket.broadcast.emit('newPlayer', player);
+
+        socket.on('disconnect', () => {
+            delete game.playersInTheRoom[id];
+            game.playersInTheRoom = game.playersInTheRoom.filter(Boolean);
+            io.emit('delPlayer', id);
+        });
 
         socket.on('changeColor', color => {
             if(color > 0 && color < gameProps.snakes.colors.length){
                 player.playerProps.color = color;
                 io.emit(`snakeUpdate-${socket.id}`, {color: color});
-                io.emit(`playersInTheRoomUpdate`, {i: id, playerProps: {color: color}});
+                io.emit(`playersInTheRoomUpdate`, {i: id, color: color});
             }
         });
 
@@ -533,6 +549,30 @@ io.on('connection', socket => {
                     eventEmitter.emit(`moveTo-${socket.id}`, moveTo));
             });
             
+        });
+
+        socket.on('multiplayer', () => {
+
+            for (let i = 0; i < 8; i++) {
+
+                if(i == game.playersInTheRoom[0].color) continue;
+                
+                let player = {
+                    id: socket.id,
+                    
+                    playerProps: {
+                        nickname: `Player ${game.playersInTheRoom.length + 1}`,
+                        bodyStart: newBodyStart(game.playersInTheRoom.length),
+                        color: 0
+                    }
+                }
+        
+                game.playersInTheRoom.push(player);
+
+                socket.broadcast.emit('newPlayer', player);
+                
+            }
+
         });
     
     });

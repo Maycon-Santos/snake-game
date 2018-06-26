@@ -14,10 +14,9 @@ io.on('connection', socket => {
 
         let player = {
             id: socket.id,
-            nickname: data.playerNickname,
             
-
             playerProps: {
+                nickname: data.playerNickname,
                 bodyStart: newBodyStart(game.playersInTheRoom.length),
                 color: 0
             }
@@ -31,13 +30,19 @@ io.on('connection', socket => {
             gameProps: gameProps
         });
 
-        socket.broadcast.emit('newPlayer', game.playersInTheRoom);
+        socket.broadcast.emit('newPlayer', player);
+
+        socket.on('disconnect', () => {
+            delete game.playersInTheRoom[id];
+            game.playersInTheRoom = game.playersInTheRoom.filter(Boolean);
+            io.emit('delPlayer', id);
+        });
 
         socket.on('changeColor', color => {
             if(color > 0 && color < gameProps.snakes.colors.length){
                 player.playerProps.color = color;
                 io.emit(`snakeUpdate-${socket.id}`, {color: color});
-                io.emit(`playersInTheRoomUpdate`, {i: id, playerProps: {color: color}});
+                io.emit(`playersInTheRoomUpdate`, {i: id, color: color});
             }
         });
 
@@ -52,6 +57,30 @@ io.on('connection', socket => {
                     eventEmitter.emit(`moveTo-${socket.id}`, moveTo));
             });
             
+        });
+
+        socket.on('multiplayer', () => {
+
+            for (let i = 0; i < 8; i++) {
+
+                if(i == game.playersInTheRoom[0].color) continue;
+                
+                let player = {
+                    id: socket.id,
+                    
+                    playerProps: {
+                        nickname: `Player ${game.playersInTheRoom.length + 1}`,
+                        bodyStart: newBodyStart(game.playersInTheRoom.length),
+                        color: 0
+                    }
+                }
+        
+                game.playersInTheRoom.push(player);
+
+                socket.broadcast.emit('newPlayer', player);
+                
+            }
+
         });
     
     });

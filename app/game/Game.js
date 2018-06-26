@@ -1,19 +1,21 @@
 function Game(){
 
     this.playersInTheRoom = [];
-    this.players = [];
-    this.foods = [];
 
     this.status = 'toStart';
     this.engine = new Engine(this);
-
-    new GameRules(this);
 
     this.engine.run();
 
 }
 
 Game.prototype.newGame = function(){
+
+    this.players = [];
+    this.foods = [];
+
+    this.engine.clear();
+    new GameRules(this);
 
     this.addPlayers();
     this.addFoods();
@@ -50,10 +52,13 @@ Game.prototype.addPlayers = function(){
 }
 
 Game.prototype.addFoods = function(){
-    let food = new Food(this, this.foods.length);
 
-    this.foods.push(food);
+    for (let i = 0; i < gameProps.foods.qnt; i++) {
+        const element = gameProps.foods.qnt[i];
+        
+        let food = new Food(this, this.foods.length);
+        this.foods.push(food);
 
-    if(this.foods.length < gameProps.foods.qnt)
-        this.addFoods();
+    }
+
 }

@@ -8,8 +8,6 @@ function Snake(game, id){
     this.body = [];
     this.color = 0;
 
-    this.increase = 0;
-
     this.killed = false;
 
     this.bodyStart = [0, 0];
