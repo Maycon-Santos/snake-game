@@ -83,11 +83,20 @@ Game.prototype.addFoods = function(){
 
 Game.prototype.resizeCanvas = function(){
 
+
+    var $snake = document.querySelector('#snake-chooser .snake');
+    const chooseSnake_snakeSize = () => {
+        $snake.style.width = `${this.tileSize}px`;
+        $snake.style.height = `${this.tileSize}px`;
+    }
+
     const resizeCanvas = () => {
        
         let winSize = [window.innerWidth, window.innerHeight]; // X, Y
         let tileSize = [0, 0].map((val, i) => winSize[i] / gameProps.tiles[i]);
         this.tileSize = tileSize[tileSize[0] > tileSize[1] ? 1 : 0];
+
+        chooseSnake_snakeSize();
         
     }
 
@@ -104,14 +113,14 @@ Game.prototype.login = function(playerNickname, callback){
 
     this.socket.on('logged', data =>{
 
-        if(typeof callback == 'function') callback(data);
-
         gameProps = Object.assign(gameProps, data.gameProps);
 
         this.id = data.myID;
         this.playersInTheRoom = data.players;
 
         this.resizeCanvas();
+
+        if(typeof callback == 'function') callback(data);
 
     });
 
@@ -132,5 +141,15 @@ Game.prototype.socketEvents = function(){
 
     this.socket.on('newPlayer', player =>
         this.playersInTheRoom.push(player));
+
+    this.socket.on('playersInTheRoomUpdate', data => {
+        var i = data.i;
+        delete data.i;
+
+        this.playersInTheRoom[i] = Object.assign(this.playersInTheRoom[i], data);
+    
+        console.log(this.playersInTheRoom[i]);
+        
+    });
 
 }

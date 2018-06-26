@@ -3,7 +3,10 @@ function Snake(game, id){
     this.id = id;
     this.idLocal = 0;
 
+    this.nickname = null;
+
     this.body = [];
+    this.color = 0;
 
     this.increase = 0;
 
@@ -21,7 +24,7 @@ function Snake(game, id){
 
         if(this.killed) return;
 
-        game.ctx.fillStyle = gameProps.snakes.colors[this.idLocal];
+        game.ctx.fillStyle = gameProps.snakes.colors[this.color];
 
         this.body.forEach(bodyFragment => {
             game.ctx.fillRect(

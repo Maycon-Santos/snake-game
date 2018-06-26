@@ -491,12 +491,16 @@ io.on('connection', socket => {
 
         if(game.playersInTheRoom.length && !multiplayerLocalAllow) return;
 
+        let id = game.playersInTheRoom.length;
+
         let player = {
             id: socket.id,
             nickname: data.playerNickname,
+            
 
             playerProps: {
-                bodyStart: newBodyStart(game.playersInTheRoom.length)
+                bodyStart: newBodyStart(game.playersInTheRoom.length),
+                color: 0
             }
         }
 
@@ -509,20 +513,28 @@ io.on('connection', socket => {
         });
 
         socket.broadcast.emit('newPlayer', game.playersInTheRoom);
-    
-    });
 
-    socket.on('single player', () => {
-
-        socket.emit('start');
-
-        socket.on('start', () => {
-            game.newGame();
-
-            socket.on(`moveTo`, moveTo => 
-                eventEmitter.emit(`moveTo-${socket.id}`, moveTo));
+        socket.on('changeColor', color => {
+            if(color > 0 && color < gameProps.snakes.colors.length){
+                player.playerProps.color = color;
+                io.emit(`snakeUpdate-${socket.id}`, {color: color});
+                io.emit(`playersInTheRoomUpdate`, {i: id, playerProps: {color: color}});
+            }
         });
-        
+
+        socket.on('single player', () => {
+
+            io.emit('start');
+    
+            socket.on('start', () => {
+                game.newGame();
+    
+                socket.on(`moveTo`, moveTo => 
+                    eventEmitter.emit(`moveTo-${socket.id}`, moveTo));
+            });
+            
+        });
+    
     });
 
 });

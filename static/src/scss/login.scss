@@ -7,7 +7,21 @@
                 display: flex;
                 justify-content: space-between;
 
+                input[type="submit"]{
+                    width: 80px;
+                    height: 45px;
+                    
+                    border: none;
+                    border-radius: 1.5px;
+
+                    color: $white;
+                    font-size: .8rem;
+
+                    background: $green-002;
+                }
+
                 input[type="text"]{
+
                     width: 160px;
                     height: 40px;
 
@@ -19,29 +33,20 @@
                     background: $white;
 
                     &:focus{
+                        border-color: $green-004;
                         background: $white-actived;
                     }
-                }
 
-                input[type="submit"]{
-                    width: 80px;
-                    height: 45px;
-                    
-                    border: none;
-
-                    color: $white;
-                    font-size: .8rem;
-
-                    background: $green-002;
-                }
-
-                input[type="text"]{
-                    &:valid + input[type="submit"]{
-                        color: $white-actived;
-                        background: $green-003;
-                        &:hover{
-                            cursor: pointer;
-                            background: $green-005;
+                    &:valid{
+                        border-color: $green-003;
+                        
+                        + input[type="submit"]{
+                            color: $white-actived;
+                            background: $green-003;
+                            &:hover{
+                                cursor: pointer;
+                                background: $green-005;
+                            }
                         }
                     }
                 }
