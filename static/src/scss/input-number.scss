@@ -1,0 +1,47 @@
+.input-number{
+    display: inline-flex;
+    border: 3px $green-002 solid;
+
+    span{
+        display: flex;
+        justify-content: center;
+        align-items: center;
+
+        width: 60px;
+        height: 35px;
+
+        color: $green-005;
+
+        background: $white;
+    }
+
+    button{
+        width: 40px;
+
+        border: none;
+
+        background: $white-actived;
+
+        &:hover{
+            cursor: pointer;
+            background: white;
+        }
+
+        &::before{
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        &.decrement{
+            &::before{ content: '-'; }
+        }
+
+        &.increment{
+            &::before{ content: '+'; }
+        }
+    }
+}

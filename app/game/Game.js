@@ -13,8 +13,8 @@ Game.prototype.newGame = function(){
 
     this.players = [];
     this.foods = [];
-
     this.engine.clear();
+    
     new GameRules(this);
 
     this.addPlayers();

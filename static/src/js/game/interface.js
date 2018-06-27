@@ -5,15 +5,18 @@ function Interface(game){
         $loginForm = $interface.querySelector('#login form'),
         $inputNickname = $loginForm.querySelector('[name="player_name"]'),
 
-        $snakeChooser = $interface.querySelector('#snake-chooser'),
-        $chooserPrev = $snakeChooser.querySelector('#chooser-prev'),
-        $chooserNext = $snakeChooser.querySelector('#chooser-next'),
-        $snake = $snakeChooser.querySelector('.snake'),
-        $submitChooser = $snakeChooser.querySelector('.submit'),
+        $snakeChoosers = $interface.querySelectorAll('.snake-chooser'),
+        
+        $submitChooser = document.querySelector('#after-login .submit'),
 
         $mainMenu = $interface.querySelector('#main-menu'),
         $singlePlayer = $mainMenu.querySelector('#single-player'),
-        $multiplayer = $mainMenu.querySelector('#multiplayer');
+        $multiplayer = $mainMenu.querySelector('#multiplayer'),
+
+        $multiplayerMenu = $interface.querySelector('#multiplayer-menu'),
+        $multiplayerSubmit = $multiplayerMenu.querySelector('.submit'),
+        $player2Name = $multiplayerMenu.querySelector('[name="player_name"]'),
+        $playersQtn = $multiplayerMenu.querySelector('.input-number');
 
     this.closeModal = () => $modal.classList.add('closed');
 
@@ -26,7 +29,7 @@ function Interface(game){
             $welcomeText.innerHTML = `Hi, ${$inputNickname.value}`;
 
             changeSnakeColor(0);
-            this.open('snake-chooser');
+            this.open('after-login');
 
         });
     });
@@ -38,36 +41,52 @@ function Interface(game){
     var currentColor = 0;
     const changeSnakeColor = color => {
 
-        if(currentColor == 0)
-            $chooserPrev.className = 'disabled';
+        for (let i = $snakeChoosers.length - 1; i >= 0; i--) {
+            const $snakeChooser = $snakeChoosers[i];
+            
+            let $chooserPrev = $snakeChooser.querySelector('.chooser-prev'),
+                $chooserNext = $snakeChooser.querySelector('.chooser-next'),
+                $snake = $snakeChooser.querySelector('.snake');
 
-        if(currentColor == gameProps.snakes.colors.length - 1)
-            $chooserNext.className = 'disabled';
+            if(currentColor == 0)
+                $chooserPrev.classList.add('disabled');
 
-        $snake.style.background = gameProps.snakes.colors[color];
+            if(currentColor == gameProps.snakes.colors.length - 1)
+                $chooserNext.classList.add('disabled');
+
+            $snake.style.background = gameProps.snakes.colors[color];
+        }
     }
-    
-    $chooserPrev.addEventListener('click', e => {
-        if(e.target.className.indexOf('disabled') == -1){
 
-            $chooserNext.classList.remove('disabled');
-
-            currentColor--;
-
-            changeSnakeColor(currentColor);
-        }
-    });
-
-    $chooserNext.addEventListener('click', e => {
-        if(e.target.className.indexOf('disabled') == -1){
-
-            $chooserPrev.classList.remove('disabled');
-
-            currentColor++;
+    for (let i = $snakeChoosers.length - 1; i >= 0; i--) {
+        const $snakeChooser = $snakeChoosers[i];
         
-            changeSnakeColor(currentColor);
-        }
-    });
+        let $chooserPrev = $snakeChooser.querySelector('.chooser-prev'),
+            $chooserNext = $snakeChooser.querySelector('.chooser-next');
+
+        $chooserPrev.addEventListener('click', e => {
+            if(e.target.className.indexOf('disabled') == -1){
+    
+                $chooserNext.classList.remove('disabled');
+    
+                currentColor--;
+    
+                changeSnakeColor(currentColor);
+            }
+        });
+    
+        $chooserNext.addEventListener('click', e => {
+            if(e.target.className.indexOf('disabled') == -1){
+    
+                $chooserPrev.classList.remove('disabled');
+    
+                currentColor++;
+            
+                changeSnakeColor(currentColor);
+            }
+        });
+
+    }
 
     $submitChooser.addEventListener('click', () => {
 
@@ -78,8 +97,16 @@ function Interface(game){
 
     $multiplayer.addEventListener('click', () => {
 
-        game.socket.emit('multiplayer');
+        this.open('multiplayer-menu');
 
+    });
+
+    $multiplayerSubmit.addEventListener('click', () => {
+        game.socket.emit('multiplayer', {
+            nickname: $player2Name.value,
+            color: currentColor,
+            nPlayers: $playersQtn.getAttribute('data-value')
+        });
     });
 
 }

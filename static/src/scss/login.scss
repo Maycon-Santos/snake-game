@@ -52,5 +52,7 @@
                 }
             }
         }
+        
+        &:not(.after-login) #after-login{ display: none !important; }
     }
 }

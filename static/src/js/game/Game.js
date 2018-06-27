@@ -75,10 +75,12 @@ Game.prototype.addFoods = function(){
 Game.prototype.resizeCanvas = function(){
 
 
-    var $snake = document.querySelector('#snake-chooser .snake');
+    var $snakes = document.querySelectorAll('.snake-chooser .snake');
     const chooseSnake_snakeSize = () => {
-        $snake.style.width = `${this.tileSize}px`;
-        $snake.style.height = `${this.tileSize}px`;
+        for (let i = $snakes.length - 1; i >= 0; i--) {
+            $snakes[i].style.width = `${this.tileSize}px`;
+            $snakes[i].style.height = `${this.tileSize}px`;
+        }
     }
 
     const resizeCanvas = () => {

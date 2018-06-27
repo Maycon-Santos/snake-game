@@ -23,11 +23,11 @@
                         <input type="submit" value="Login">
                     </form>
                 </div>
-                <div id="snake-chooser">
+                <div id="after-login" class="snake-chooser">
                     <h4>Choose the snake color</h4>
-                    <button id="chooser-prev"></button>
+                    <button class="chooser-prev"></button>
                     <div class="snake"></div>
-                    <button id="chooser-next"></button>
+                    <button class="chooser-next"></button>
                     <button class="submit">Ok</button>
                 </div>
                 <div id="main-menu">
@@ -40,6 +40,21 @@
                             <li><button id="online">Online</button></li>
                         </ul>
                     </nav>
+                </div>
+                <div id="multiplayer-menu">
+                    <div class="snake-chooser min">
+                        <input type="text" name="player_name" value="Player 2">
+                        <button class="chooser-prev"></button>
+                        <div class="snake" style="background: #000; width: 16px; height: 16px;"></div>
+                        <button class="chooser-next"></button>
+                    </div>
+                    <h4>Snakes</h4>
+                    <div class="input-number" data-min="0" data-max="7" data-value="0">
+                        <button class="decrement"></button>
+                        <span>o</span>
+                        <button class="increment"></button>
+                    </div>
+                    <button class="submit">Ok</button>
                 </div>
                 <footer>
                     <span>By <a href="https://github.com/maycon-santos" target="_blank">Maycon Santos</a></span>

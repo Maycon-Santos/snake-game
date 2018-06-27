@@ -15,7 +15,10 @@ body{
     // }
 }
 
-body, button, input[type="button"], input[type="submit"]{
+body,
+button,
+input[type="button"],
+input[type="submit"]{
     font-family: '8-bit-wonder', sans-serif;
     letter-spacing: 2px;
 }
@@ -27,3 +30,14 @@ input[type="text"]{
 }
 
 button, input{ outline: none; }
+
+.submit{
+    border-radius: 1.5px;
+    border: none;
+    background: $green-006;
+
+    &:hover{
+        cursor: pointer;
+        background: $green-002;
+    }
+}
