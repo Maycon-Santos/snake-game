@@ -7,6 +7,17 @@ function Game(){
 
     this.engine.run();
 
+    Object.defineProperty(this, 'colorsInUse', {
+        get: () => {
+            var colorsInUse = [];
+            for (let i = this.playersInTheRoom.length - 1; i >= 0; i--) {
+                const player = this.playersInTheRoom[i];
+                colorsInUse.push(player.color);
+            }
+            return colorsInUse;
+        }
+    });
+
 }
 
 Game.prototype.newGame = function(){
@@ -57,5 +68,13 @@ Game.prototype.addFoods = function(){
         let food = new Food(this, this.foods.length);
         this.foods.push(food);
     }
+
+}
+
+Game.prototype.generateColor = function(){
+
+    var color = Math.round(Math.random()*gameProps.snakes.colors.length);
+    
+    return this.colorsInUse.includes(color) ? this.generateColor() : color;
 
 }

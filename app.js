@@ -36,7 +36,7 @@ const app = express();
 const port = 5000;
 const server = app.listen(port);
 
-const eventEmitter = new events.EventEmitter();
+const snakeEvent = new events.EventEmitter();
 
 app.use(express.static('static'));
 
@@ -142,7 +142,6 @@ function Food(game, id){
 
         this.position = [[], []].map((_, axis) => Math.round(Math.random() * (gameProps.tiles[axis] - 1)));
     
-        io.emit('teste', 'food');
         io.emit(`foodUpdate-${id}`, {position: this.position, type: this.type});
     }
 
@@ -155,6 +154,17 @@ function Game(){
     this.engine = new Engine(this);
 
     this.engine.run();
+
+    Object.defineProperty(this, 'colorsInUse', {
+        get: () => {
+            var colorsInUse = [];
+            for (let i = this.playersInTheRoom.length - 1; i >= 0; i--) {
+                const player = this.playersInTheRoom[i];
+                colorsInUse.push(player.color);
+            }
+            return colorsInUse;
+        }
+    });
 
 }
 
@@ -208,6 +218,14 @@ Game.prototype.addFoods = function(){
     }
 
 }
+
+Game.prototype.generateColor = function(){
+
+    var color = Math.round(Math.random()*gameProps.snakes.colors.length);
+    
+    return this.colorsInUse.includes(color) ? this.generateColor() : color;
+
+}
 var gameProps = {
     tiles: [64, 36], // X, Y
 
@@ -224,14 +242,15 @@ var gameProps = {
         ],
 
         colors: [
-            '#000000', // Black
-            '#ff0000', // Red
-            '#00ff00', // Green
-            '#0000ff', // Blue
-            'Orange',
-            'MidnightBlue',
-            'Magenta',
-            'AliceBlue'
+            '#000000',
+            'DimGray',
+            'HotPink',
+            'Brown',
+            'DarkBlue',
+            'RosyBrown',
+            'Chocolate',
+            'AliceBlue',
+            'Goldenrod'
         ]
     },
 
@@ -480,7 +499,9 @@ function SnakeControls(snake, game){
 
     var rowMovements = [];
 
-    eventEmitter.on(`moveTo-${snake.id}`, moveTo => rowMovements.push(moveTo));
+    snakeEvent.on('moveTo', (data = {id, moveTo}) => {
+        if(data.id == snake.id) rowMovements.push(data.moveTo);
+    });
 
     //Set current movement
     this.currentMovement = () => {
@@ -503,15 +524,14 @@ io.on('connection', socket => {
 
     socket.on('login', data => {
 
-        if(game.playersInTheRoom.length && !multiplayerLocalAllow) return;
+        if(io.engine.clientsCount && !multiplayerLocalAllow) return;
 
         let iterator = game.playersInTheRoom.length;
 
         let player = {
             id: socket.id,
             nickname: data.playerNickname,
-            bodyStart: newBodyStart(game.playersInTheRoom.length),
-            color: 0
+            bodyStart: newBodyStart(game.playersInTheRoom.length)
         }
 
         socket.emit('logged', {
@@ -525,38 +545,48 @@ io.on('connection', socket => {
         socket.broadcast.emit('newPlayer', player);
 
         socket.on('disconnect', () => {
-            delete game.playersInTheRoom[iterator];
-            game.playersInTheRoom = game.playersInTheRoom.filter(Boolean);
-            io.emit('delPlayer', iterator);
-        });
-
-        socket.on('changeColor', color => {
-            if(color > 0 && color < gameProps.snakes.colors.length){
-                player.color = color;
-                io.emit(`snakeUpdate-${player.id}`, {color: color});
-                io.emit(`playersInTheRoom update`, {i: iterator, color: color});
+            if(io.engine.clientsCount == 0)
+                game.playersInTheRoom = [];
+            else{
+                delete game.playersInTheRoom[iterator];
+                game.playersInTheRoom = game.playersInTheRoom.filter(Boolean);
+                io.emit('delPlayer', iterator);
             }
         });
 
-        socket.on('single player', () => {
+        socket.on('changeColor', color => {
+
+            let colorsInUse = game.colorsInUse;
+            if(colorsInUse.includes(color)) return;
+
+            if(color >= 0 && color < gameProps.snakes.colors.length){
+                player.color = color;
+                io.emit(`snakeUpdate-${socket.id}`, {color: color});
+                io.emit(`playersInTheRoom update`, {i: iterator, color: color});
+            }
+
+        });
+
+        socket.on('start', () => {
 
             io.emit('start');
-    
             game.newGame();
 
-            socket.on(`moveTo`, data => 
-                eventEmitter.emit(`moveTo-${data.id}`, data.moveTo));
-            
         });
+
+        socket.on('moveTo', data => snakeEvent.emit('moveTo', data));
 
         socket.on('prepare multiplayer', data => {
 
             let players = [];
+            let colorsInUse = game.colorsInUse;
+
+            if(colorsInUse.includes(data.color)) return;
 
             let player2 = {
-                id: socket.id+'[1]',
+                id: `${socket.id}[1]`,
                 idLocal: 1,
-                nickname: data.playerNickname || 'Player 2',
+                nickname: data.nickname || 'Player 2',
                 bodyStart: newBodyStart(game.playersInTheRoom.length),
                 color: data.color
             }
@@ -572,7 +602,7 @@ io.on('connection', socket => {
                     id: `comp-${i}`,
                     nickname: `Player ${game.playersInTheRoom.length + 1}`,
                     bodyStart: newBodyStart(game.playersInTheRoom.length),
-                    color: 0
+                    color: game.generateColor()
                 }
         
                 game.playersInTheRoom.push(player);
@@ -582,16 +612,6 @@ io.on('connection', socket => {
 
             io.emit('prepare multiplayer', players);
             
-        });
-
-        socket.on('multiplayer', () => {
-            io.emit('start');
-
-            game.newGame();
-
-            socket.on(`moveTo`, moveTo =>
-                eventEmitter.emit(`moveTo-${socket.id}`, moveTo));
-    
         });
     
     });

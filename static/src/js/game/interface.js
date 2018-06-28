@@ -4,8 +4,6 @@ function Interface(game){
         $modal = $interface.querySelector('.modal'),
         $loginForm = $interface.querySelector('#login form'),
         $inputNickname = $loginForm.querySelector('[name="player_name"]'),
-
-        $snakeChoosers = $interface.querySelectorAll('.snake-chooser'),
         
         $submitChooser = document.querySelector('#after-login .submit'),
 
@@ -22,91 +20,53 @@ function Interface(game){
 
     this.open = what => $interface.className = what;
 
+    const snakeChooser = new SnakeChooser($interface);
+    const dialogBox = new DialogBox($interface);
+    new InputNumber();
+
     var $welcomeText = $mainMenu.querySelector('#welcome');
     $loginForm.addEventListener('submit', e => {
         game.login($inputNickname.value, data => {
 
             $welcomeText.innerHTML = `Hi, ${$inputNickname.value}`;
 
-            changeSnakeColor(0);
+            snakeChooser.changeSnakeColor();
             this.open('after-login');
 
         });
     });
 
     $singlePlayer.addEventListener('click', e => {
-        game.socket.emit('single player');
+        game.socket.emit('start');
     });
-
-    var currentColor = 0;
-    const changeSnakeColor = color => {
-
-        for (let i = $snakeChoosers.length - 1; i >= 0; i--) {
-            const $snakeChooser = $snakeChoosers[i];
-            
-            let $chooserPrev = $snakeChooser.querySelector('.chooser-prev'),
-                $chooserNext = $snakeChooser.querySelector('.chooser-next'),
-                $snake = $snakeChooser.querySelector('.snake');
-
-            if(currentColor == 0)
-                $chooserPrev.classList.add('disabled');
-
-            if(currentColor == gameProps.snakes.colors.length - 1)
-                $chooserNext.classList.add('disabled');
-
-            $snake.style.background = gameProps.snakes.colors[color];
-        }
-    }
-
-    for (let i = $snakeChoosers.length - 1; i >= 0; i--) {
-        const $snakeChooser = $snakeChoosers[i];
-        
-        let $chooserPrev = $snakeChooser.querySelector('.chooser-prev'),
-            $chooserNext = $snakeChooser.querySelector('.chooser-next');
-
-        $chooserPrev.addEventListener('click', e => {
-            if(e.target.className.indexOf('disabled') == -1){
-    
-                $chooserNext.classList.remove('disabled');
-    
-                currentColor--;
-    
-                changeSnakeColor(currentColor);
-            }
-        });
-    
-        $chooserNext.addEventListener('click', e => {
-            if(e.target.className.indexOf('disabled') == -1){
-    
-                $chooserPrev.classList.remove('disabled');
-    
-                currentColor++;
-            
-                changeSnakeColor(currentColor);
-            }
-        });
-
-    }
 
     $submitChooser.addEventListener('click', () => {
 
-        game.socket.emit('changeColor', currentColor);
+        game.socket.emit('changeColor', snakeChooser.currentColor);
         this.open('main-menu');
 
     });
 
     $multiplayer.addEventListener('click', () => {
 
+        snakeChooser.currentColor = 0;
+        snakeChooser.changeSnakeColor();
         this.open('multiplayer-menu');
 
     });
 
     $multiplayerSubmit.addEventListener('click', () => {
+
+        var colorsInUse = game.colorsInUse;
+        if(colorsInUse.includes(snakeChooser.currentColor))
+            return dialogBox.alert('Denied', 'This color is being used.');
+
         game.socket.emit('prepare multiplayer', {
             nickname: $player2Name.value,
-            color: currentColor,
+            color: snakeChooser.currentColor,
             nPlayers: $playersQtn.getAttribute('data-value')
         });
+
     });
 
 }

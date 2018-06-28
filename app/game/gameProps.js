@@ -14,14 +14,15 @@ var gameProps = {
         ],
 
         colors: [
-            '#000000', // Black
-            '#ff0000', // Red
-            '#00ff00', // Green
-            '#0000ff', // Blue
-            'Orange',
-            'MidnightBlue',
-            'Magenta',
-            'AliceBlue'
+            '#000000',
+            'DimGray',
+            'HotPink',
+            'Brown',
+            'DarkBlue',
+            'RosyBrown',
+            'Chocolate',
+            'AliceBlue',
+            'Goldenrod'
         ]
     },
 

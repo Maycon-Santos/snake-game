@@ -15,7 +15,6 @@ function Snake(game, props){
 
     if(!isNaN(this.idLocal)) new SnakeControls(this, game);
 
-    console.log(`snakeUpdate-${this.id}`);
     game.socket.on(`snakeUpdate-${this.id}`, this.update);
 
     this.draw = () => {

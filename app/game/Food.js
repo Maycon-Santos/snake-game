@@ -24,7 +24,6 @@ function Food(game, id){
 
         this.position = [[], []].map((_, axis) => Math.round(Math.random() * (gameProps.tiles[axis] - 1)));
     
-        io.emit('teste', 'food');
         io.emit(`foodUpdate-${id}`, {position: this.position, type: this.type});
     }
 

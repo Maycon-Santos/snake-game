@@ -2,7 +2,9 @@ function SnakeControls(snake, game){
 
     var rowMovements = [];
 
-    eventEmitter.on(`moveTo-${snake.id}`, moveTo => rowMovements.push(moveTo));
+    snakeEvent.on('moveTo', (data = {id, moveTo}) => {
+        if(data.id == snake.id) rowMovements.push(data.moveTo);
+    });
 
     //Set current movement
     this.currentMovement = () => {

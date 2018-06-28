@@ -24,6 +24,17 @@ function Game(canvas){
         get: () => status
     });
 
+    Object.defineProperty(this, 'colorsInUse', {
+        get: () => {
+            var colorsInUse = [];
+            for (let i = this.playersInTheRoom.length - 1; i >= 0; i--) {
+                const player = this.playersInTheRoom[i];
+                colorsInUse.push(player.color);
+            }
+            return colorsInUse;
+        }
+    });
+
     this.playersInTheRoom = [];
 
     this.id = null;
@@ -131,8 +142,6 @@ Game.prototype.socketEvents = function(){
         this.addPlayers();
         this.addFoods();
         this.newGame();
-        
-        this.socket.emit('start');
 
     });
 
@@ -144,7 +153,7 @@ Game.prototype.socketEvents = function(){
             const player = arr[i];
             this.playersInTheRoom.push(player);
         }
-        this.socket.emit('multiplayer');
+        this.socket.emit('start');
     });
 
     this.socket.on('playersInTheRoom update', data => {

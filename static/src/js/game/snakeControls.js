@@ -2,11 +2,7 @@ function SnakeControls(snake, game){
 
     const pushMovement = moveTo => {
         if(!moveTo) return;
-        console.log({
-            id: snake.id,
-            moveTo: moveTo
-        });
-        game.socket.emit(`moveTo`, {
+        game.socket.emit('moveTo', {
             id: snake.id,
             moveTo: moveTo
         });

@@ -1,0 +1,46 @@
+#game{
+    #interface{
+        .dialog-box{
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate3d(-50%, -50%, 0);
+
+            width: 300px;
+            padding: 20px;
+
+            box-sizing: border-box;
+            border-radius: 1.5px;
+
+            color: white;
+            text-align: center;
+
+            background: rgba($color: $green-005, $alpha: .8);
+            z-index: 99;
+
+            h1{
+                font-size: 1.5rem;
+            }
+
+            p{
+                margin: 15px 0;
+                font-size: 0.9rem;
+                line-height: 1.4rem;
+            }
+
+            button{
+                padding: 10px 30px;
+                border: none;
+                border-radius: 1.5px;
+                background: $white-002;
+
+                &:hover{
+                    cursor: pointer;
+                    background: white;
+                }
+            }
+
+            + .modal{ filter: blur(4px); }
+        }
+    }
+}
