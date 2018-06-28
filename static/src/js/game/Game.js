@@ -55,7 +55,7 @@ Game.prototype.addPlayers = function(){
     for (let i = this.playersInTheRoom.length - 1; i >= 0 ; i--) {
         const playerInTheRoom = this.playersInTheRoom[i];
 
-        let player = Object.assign(new Snake(this, playerInTheRoom.id), playerInTheRoom.playerProps);
+        let player = new Snake(this, playerInTheRoom);
 
         this.players.push(player);
 
@@ -108,9 +108,12 @@ Game.prototype.login = function(playerNickname, callback){
 
         gameProps = Object.assign(gameProps, data.gameProps);
 
-        this.id = data.myID;
-        this.playersInTheRoom = data.players;
+        data.player.idLocal = 0;
 
+        this.id = data.myID;
+        this.playersInTheRoom.push(data.player);
+        this.playersInTheRoom = Object.assign(this.playersInTheRoom, data.playersInTheRoom);
+        
         this.resizeCanvas();
 
         if(typeof callback == 'function') callback(data);
@@ -122,7 +125,7 @@ Game.prototype.login = function(playerNickname, callback){
 Game.prototype.socketEvents = function(){
 
     this.socket.on('start', () => {
-
+        
         this.interface.closeModal();
 
         this.addPlayers();
@@ -130,15 +133,24 @@ Game.prototype.socketEvents = function(){
         this.newGame();
         
         this.socket.emit('start');
+
     });
 
     this.socket.on('newPlayer', player =>
         this.playersInTheRoom.push(player));
 
-    this.socket.on('playersInTheRoomUpdate', data => {
+    this.socket.on('prepare multiplayer', arr => {
+        for (let i = arr.length - 1; i >= 0; i--) {
+            const player = arr[i];
+            this.playersInTheRoom.push(player);
+        }
+        this.socket.emit('multiplayer');
+    });
+
+    this.socket.on('playersInTheRoom update', data => {
         var i = data.i;
         delete data.i;
-        this.playersInTheRoom[i].playerProps = Object.assign(this.playersInTheRoom[i].playerProps, data);        
+        this.playersInTheRoom[i] = Object.assign(this.playersInTheRoom[i], data);        
     });
 
     this.socket.on('delPlayer', i => {

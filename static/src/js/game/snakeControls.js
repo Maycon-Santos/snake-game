@@ -1,10 +1,15 @@
 function SnakeControls(snake, game){
 
-    //var rowMovements = [];
-
     const pushMovement = moveTo => {
         if(!moveTo) return;
-        game.socket.emit(`moveTo`, moveTo);
+        console.log({
+            id: snake.id,
+            moveTo: moveTo
+        });
+        game.socket.emit(`moveTo`, {
+            id: snake.id,
+            moveTo: moveTo
+        });
     }
 
     var $touchAreas = document.querySelector('#touch-areas');
@@ -23,7 +28,7 @@ function SnakeControls(snake, game){
     } : undefined)(gameProps.snakes.keyMaps[snake.idLocal]);
 
     keyMap && window.addEventListener('keydown', e => pushMovement(keyMap.direction(e.key)));
-    
+
     // Touch devices 
     let touchArea = 'all';
     let touchstart = {}, touchmove = {}, sensibilityTouch = gameProps.snakes.sensibilityTouch;
@@ -33,7 +38,7 @@ function SnakeControls(snake, game){
     const getOrientation = () => screen.msOrientation || (screen.orientation || screen.mozOrientation || {}).type || orientationMap[window.orientation];
     let orientation = getOrientation();
     window.addEventListener('orientationchange', () => orientation = getOrientation());
-
+    
     const touchHandle = touchedArea => {
 
         let dragged = [[], []].map((_, axis) => touchstart[touchedArea][axis] - touchmove[touchedArea][axis]);
@@ -65,7 +70,9 @@ function SnakeControls(snake, game){
     const touchPos = e => [e.changedTouches[0].pageX, e.changedTouches[0].pageY];
 
     if(touchArea){
-        for (const area in $touchArea) {
+        const $touchAreaKeys = Object.keys($touchArea);
+        for (let i = $touchAreaKeys.length - 1; i >=0 ; i--) {
+            const area = $touchAreaKeys[i];
             $touchArea[area].addEventListener('touchstart', e => touchstart[area] = touchPos(e));
             $touchArea[area].addEventListener('touchmove', e => { touchmove[area] = touchPos(e); touchHandle(area); });
         }

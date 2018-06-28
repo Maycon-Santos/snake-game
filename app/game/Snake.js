@@ -1,12 +1,14 @@
-function Snake(game, id){
+function Snake(game, props){
 
-    this.id = id;
+    this.id = null;
     this.body = [];
 
     this.increase = 0;
     this.collided = false;
 
     this.bodyStart = [0, 0];
+
+    this.merge(props);
 
     const directionMap = {
         'left': [-1, 0],
@@ -62,7 +64,7 @@ function Snake(game, id){
         get: () => killed,
         set: (Bool) => {
             killed = !!Bool;
-            io.emit(`snakeUpdate-${id}`, {killed: killed});
+            io.emit(`snakeUpdate-${this.id}`, {killed: killed});
         }
     });
 
@@ -84,7 +86,7 @@ function Snake(game, id){
         this.body.splice(0, 0, nextPos());
         this.increase < 1 ? this.body.pop() : this.increase--;
 
-        io.emit(`snakeUpdate-${id}`, {body: this.body});
+        io.emit(`snakeUpdate-${this.id}`, {body: this.body});
         
     }
 

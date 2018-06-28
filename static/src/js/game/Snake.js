@@ -1,22 +1,22 @@
-function Snake(game, id){
+function Snake(game, props){
 
-    this.id = id;
-    this.idLocal = 0;
-
+    this.id = null;
+    this.idLocal = null;
     this.nickname = null;
-
     this.body = [];
     this.color = 0;
+    this.bodyStart = [0, 0];
+
+    this.merge(props);
 
     this.killed = false;
 
-    this.bodyStart = [0, 0];
-
     game.engine.add(this);
 
-    if(game.id == this.id) new SnakeControls(this, game);
+    if(!isNaN(this.idLocal)) new SnakeControls(this, game);
 
-    game.socket.on(`snakeUpdate-${id}`, this.update);
+    console.log(`snakeUpdate-${this.id}`);
+    game.socket.on(`snakeUpdate-${this.id}`, this.update);
 
     this.draw = () => {
 

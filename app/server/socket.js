@@ -14,22 +14,19 @@ io.on('connection', socket => {
 
         let player = {
             id: socket.id,
-            
-            playerProps: {
-                nickname: data.playerNickname,
-                bodyStart: newBodyStart(game.playersInTheRoom.length),
-                color: 0
-            }
+            nickname: data.playerNickname,
+            bodyStart: newBodyStart(game.playersInTheRoom.length),
+            color: 0
         }
-
-        game.playersInTheRoom.push(player);
 
         socket.emit('logged', {
             myID: player.id,
-            players: game.playersInTheRoom,
+            player: player,
+            playersInTheRoom: game.playersInTheRoom,
             gameProps: gameProps
         });
 
+        game.playersInTheRoom.push(player);
         socket.broadcast.emit('newPlayer', player);
 
         socket.on('disconnect', () => {
@@ -40,9 +37,9 @@ io.on('connection', socket => {
 
         socket.on('changeColor', color => {
             if(color > 0 && color < gameProps.snakes.colors.length){
-                player.playerProps.color = color;
+                player.color = color;
                 io.emit(`snakeUpdate-${player.id}`, {color: color});
-                io.emit(`playersInTheRoomUpdate`, {i: iterator, color: color});
+                io.emit(`playersInTheRoom update`, {i: iterator, color: color});
             }
         });
 
@@ -52,57 +49,54 @@ io.on('connection', socket => {
     
             game.newGame();
 
-            socket.on(`moveTo`, moveTo => 
-                eventEmitter.emit(`moveTo-${player.id}`, moveTo));
+            socket.on(`moveTo`, data => 
+                eventEmitter.emit(`moveTo-${data.id}`, data.moveTo));
             
         });
 
-        socket.on('multiplayer', data => {
+        socket.on('prepare multiplayer', data => {
+
+            let players = [];
 
             let player2 = {
                 id: socket.id+'[1]',
-                
-                playerProps: {
-                    nickname: data.playerNickname || 'Player 2',
-                    bodyStart: newBodyStart(game.playersInTheRoom.length),
-                    color: data.color
-                }
+                idLocal: 1,
+                nickname: data.playerNickname || 'Player 2',
+                bodyStart: newBodyStart(game.playersInTheRoom.length),
+                color: data.color
             }
 
             game.playersInTheRoom.push(player2);
-
-            io.emit('newPlayer', player2);
+            players.push(player2);
 
             for (let i = 0; i < data.nPlayers; i++) {
 
                 if(i == game.playersInTheRoom[0].color) continue;
                 
                 let player = {
-                    id: socket.id,
-                    
-                    playerProps: {
-                        nickname: `Player ${game.playersInTheRoom.length + 1}`,
-                        bodyStart: newBodyStart(game.playersInTheRoom.length),
-                        color: 0
-                    }
+                    id: `comp-${i}`,
+                    nickname: `Player ${game.playersInTheRoom.length + 1}`,
+                    bodyStart: newBodyStart(game.playersInTheRoom.length),
+                    color: 0
                 }
         
                 game.playersInTheRoom.push(player);
-
-                io.emit('newPlayer', player);
+                players.push(player);
                 
             }
 
+            io.emit('prepare multiplayer', players);
+            
+        });
+
+        socket.on('multiplayer', () => {
             io.emit('start');
 
-            socket.on('start', () => {
-                game.newGame();
+            game.newGame();
 
-                socket.on(`moveTo`, moveTo =>
-                    eventEmitter.emit(`moveTo-${socket.id}`, moveTo));
+            socket.on(`moveTo`, moveTo =>
+                eventEmitter.emit(`moveTo-${socket.id}`, moveTo));
     
-            });
-            
         });
     
     });

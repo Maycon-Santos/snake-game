@@ -102,7 +102,7 @@ function Interface(game){
     });
 
     $multiplayerSubmit.addEventListener('click', () => {
-        game.socket.emit('multiplayer', {
+        game.socket.emit('prepare multiplayer', {
             nickname: $player2Name.value,
             color: currentColor,
             nPlayers: $playersQtn.getAttribute('data-value')

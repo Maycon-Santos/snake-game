@@ -44,7 +44,7 @@ Game.prototype.addPlayers = function(){
     for (let i = this.playersInTheRoom.length - 1; i >= 0 ; i--) {
         const playerInTheRoom = this.playersInTheRoom[i];
 
-        let player = Object.assign(new Snake(this, playerInTheRoom.id), playerInTheRoom.playerProps);
+        let player = new Snake(this, playerInTheRoom);
 
         this.players.push(player);
     }
@@ -53,12 +53,9 @@ Game.prototype.addPlayers = function(){
 
 Game.prototype.addFoods = function(){
 
-    for (let i = 0; i < gameProps.foods.qnt; i++) {
-        const element = gameProps.foods.qnt[i];
-        
+    for (let i = 0; i < gameProps.foods.qnt; i++) {        
         let food = new Food(this, this.foods.length);
         this.foods.push(food);
-
     }
 
 }
