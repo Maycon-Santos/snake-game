@@ -20,42 +20,6 @@
                 background: none;
                 &:hover, &:focus{ text-decoration: underline; }
             }
-                
-            .snake{
-                position: relative;
-                display: block;
-                margin: 40px auto;
-
-                &::before, &::after{
-                    content: '';
-                    display: block;
-                    width: inherit;
-                    height: inherit;
-                    background: inherit;
-                }
-
-                &::before{ margin-left: 100%; }
-                &::after{ margin-top: -100%; margin-left: -100%; }
-
-                &.color-in-use{
-                    span{
-                        position: absolute;
-                        top: calc(50% - 2.5px);
-                        left: calc(50% - 150%);
-
-                        display: block;
-                        width: 300%;
-                        height: 5px;
-                        border: 1.5px rgba(0, 0, 0, .15) solid;
-
-                        box-sizing: border-box;
-
-                        transform: rotate(-37deg);
-
-                        background: #ff0000;
-                    }
-                }
-            }
 
             .chooser-prev, .chooser-next{
                 position: absolute;

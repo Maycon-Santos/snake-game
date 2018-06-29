@@ -7,7 +7,7 @@ const app = express();
 const port = 5000;
 const server = app.listen(port);
 
-const snakeEvent = new events.EventEmitter();
+var game = new Game();
 
 app.use(express.static('static'));
 

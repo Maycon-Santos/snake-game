@@ -5,7 +5,7 @@
     <meta name="viewport" content="minimal-ui, width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <meta name="theme-color" content="#7da278">
-    <link rel="manifest" href="manifest.json">
+    <!-- <link rel="manifest" href="manifest.json"> -->
     <title>Snake</title>
     <link rel="stylesheet" href="css/style.css">
     <script src="socket.io/socket.io.js"></script>
@@ -54,7 +54,43 @@
                         <span>o</span>
                         <button class="increment"></button>
                     </div>
-                    <button class="submit">Ok</button>
+                    <button class="submit">Start</button>
+                </div>
+                <div id="multiplayer-local-menu">
+                    <h4>Access: 192.168.730.113:5000 in the browser.</h4>
+                    <div class="connected-players">
+                        <h5>Connected players</h5>
+                        <ul>
+                            <li>
+                                <span style="color: #ff0000;">Player 2</span>
+                                <div class="snake" style="background: #ff0000; width: 16px; height: 16px;"></div>
+                            </li>
+                            <li>
+                                <span style="color: #ff0;">Lucas</span>
+                                <div class="snake" style="background: #ff0; width: 16px; height: 16px;"></div>
+                            </li>
+                            <li>
+                                <span style="color: #0ff;">Jesus</span>
+                                <div class="snake" style="background: #0ff; width: 16px; height: 16px;"></div>
+                            </li>
+                            <li>
+                                <span style="color: rgb(255, 174, 0);">Odin</span>
+                                <div class="snake" style="background: rgb(255, 174, 0); width: 16px; height: 16px;"></div>
+                            </li>
+                            <li>
+                                <span style="color: #0f0;">Zeus</span>
+                                <div class="snake" style="background: #0f0; width: 16px; height: 16px;"></div>
+                            </li>
+                            <li>
+                                <span style="color: #f0f;">Pepa pig</span>
+                                <div class="snake" style="background: #f0f; width: 16px; height: 16px;"></div>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="player-counter">
+                        <span>o</span> / <b>8</b>
+                    </div>
+                    <button class="submit">Start</button>
                 </div>
                 <footer>
                     <span>By <a href="https://github.com/maycon-santos" target="_blank">Maycon Santos</a></span>

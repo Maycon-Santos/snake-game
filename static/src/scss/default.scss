@@ -9,10 +9,6 @@ html,body{ width: 100%; height: 100%; touch-action: none; overflow: hidden;}
 body{
     display: flex;
     background: $green-002;
-
-    // &.toStart{
-    //     background: $green-001;
-    // }
 }
 
 body,
@@ -40,4 +36,32 @@ button, input{ outline: none; }
         cursor: pointer;
         background: $green-002;
     }
+}
+
+*::-webkit-scrollbar {
+    width: 2.5px;
+    height: 2.5px;
+}
+
+*::-webkit-scrollbar-button {
+    width: 0px;
+    height: 0px;
+}
+
+*::-webkit-scrollbar-thumb {
+    background: $green-003;
+    border-radius: 50px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+    background: $green-005;
+}
+
+*::-webkit-scrollbar-track {
+    background: $green-002;
+    border-radius: 50px;
+}
+
+*::-webkit-scrollbar-corner {
+    background: transparent;
 }

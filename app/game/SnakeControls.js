@@ -2,8 +2,11 @@ function SnakeControls(snake, game){
 
     var rowMovements = [];
 
-    snakeEvent.on('moveTo', (data = {id, moveTo}) => {
-        if(data.id == snake.id) rowMovements.push(data.moveTo);
+    game.event.on('moveTo', (data = {id, moveTo}) => {
+        if(data.id == snake.id){
+            if(data.moveTo != rowMovements.lastItem())
+                rowMovements.push(data.moveTo);
+        }
     });
 
     //Set current movement

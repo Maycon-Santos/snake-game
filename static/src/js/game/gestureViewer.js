@@ -1,4 +1,4 @@
-function gestureViewer(){
+function gestureViewer(game){
 
     var $gestureViewer = document.querySelector('#gestureViewer'),
         $canvas = document.createElement('canvas'),
@@ -20,6 +20,8 @@ function gestureViewer(){
     }
 
     window.addEventListener('touchstart', e => {
+        if(game.status != 'playing') return;
+
         for(let i = e.changedTouches.length - 1; i >= 0; i--){
             const touch = e.changedTouches[i];
             var ballPoint = {
@@ -32,6 +34,8 @@ function gestureViewer(){
     });
 
     window.addEventListener('touchmove', e => {
+        if(game.status != 'playing') return;
+
         for(let i = e.changedTouches.length - 1; i >= 0; i--){
             const touch = e.changedTouches[i];
             var ballPoint = ballPoints[touch.identifier || counter],
@@ -44,12 +48,16 @@ function gestureViewer(){
     });
 
     window.addEventListener('touchend', e => {
+        if(game.status != 'playing') return;
+        
         for(let i = e.changedTouches.length - 1; i >= 0; i--){
             const touch = e.changedTouches[i];
             delete ballPoints[touch.identifier || counter];
         }
         setTimeout(() => ctx.clearRect(0, 0, $canvas.width, $canvas.height), 200);
     });
+
+    document.ontouchmove = function(e){ e.preventDefault(); } // Disable page scroll
 
     const canvasFullSize = () => {
         $canvas.width = window.innerWidth;

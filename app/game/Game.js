@@ -5,6 +5,8 @@ function Game(){
     this.status = 'toStart';
     this.engine = new Engine(this);
 
+    this.multiplayerLocalAllow = false;
+
     this.engine.run();
 
     Object.defineProperty(this, 'colorsInUse', {
@@ -19,6 +21,8 @@ function Game(){
     });
 
 }
+
+Game.prototype.event = new events.EventEmitter();
 
 Game.prototype.newGame = function(){
 

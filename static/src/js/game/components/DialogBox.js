@@ -15,6 +15,7 @@ function DialogBox($interface){
 
         $interface.insertBefore($alert, $modal);
 
+        $buttonOk.focus();
         $buttonOk.addEventListener('click', () => {
             $buttonOk.parentNode.remove();
             typeof callback == 'function' && callback();

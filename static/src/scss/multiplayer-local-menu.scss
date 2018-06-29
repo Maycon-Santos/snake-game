@@ -1,0 +1,67 @@
+#game{
+    #interface{
+        &:not(.multiplayer-local-menu) #multiplayer-local-menu{ display: none !important; }
+        #multiplayer-local-menu{
+            h4{
+                font-size: .85rem;
+                line-height: 1.4rem;
+            }
+
+            .connected-players{
+                width: 100%;
+
+                margin: 15px 0 10px 0;
+                padding: 20px 10px 20px 20px;
+
+                border: 3px $green-002 solid;
+
+                box-sizing: border-box;
+
+                h5{
+                    margin-bottom: 20px;
+                    color: $green-004;
+                }
+
+                ul{
+                    list-style: none;
+
+                    padding-right: 10px;
+                    max-height: 140px;
+                    overflow-y: auto;
+
+                    li{
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+
+                        .snake{
+                            margin: 0;
+                            &::before{ margin-left: -200%; }
+                        }
+
+                        + li{
+                            margin-top: 15px;
+                        }
+                    }
+                }
+            }
+
+            .player-counter{
+                display: inline-block;
+                margin-right: 97.4px;
+                color: $green-003;
+                font-size: .8rem;
+            }
+
+            .submit{
+                display: inline-block;
+                width: 150px;
+                height: 40px;
+            }
+
+            &.multiplayer-local-viewer{
+                h4, button{ display: none; }
+            }
+        }
+    }
+}

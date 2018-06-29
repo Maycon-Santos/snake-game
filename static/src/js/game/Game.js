@@ -46,13 +46,14 @@ function Game(canvas){
     this.interface = new Interface(this);
     this.socket = io();
 
+    this.multiplayerLocalAllow = false;
+
     this.socket.on('teste', t => console.log(t))
 
-    gestureViewer();
+    gestureViewer(this);
 
     this.engine.run();
 
-    this.socketEvents();
 }
 
 Game.prototype.newGame = function(){
@@ -63,11 +64,11 @@ Game.prototype.newGame = function(){
 
 Game.prototype.addPlayers = function(){
 
-    for (let i = this.playersInTheRoom.length - 1; i >= 0 ; i--) {
+    let playersInTheRoom = this.playersInTheRoom.length;
+    for (let i = 0; i < playersInTheRoom; i++) {
+
         const playerInTheRoom = this.playersInTheRoom[i];
-
         let player = new Snake(this, playerInTheRoom);
-
         this.players.push(player);
 
     }
@@ -120,15 +121,25 @@ Game.prototype.login = function(playerNickname, callback){
         gameProps = Object.assign(gameProps, data.gameProps);
 
         data.player.idLocal = 0;
+        this.multiplayerLocalAllow = data.multiplayerLocal;
 
         this.id = data.myID;
         this.playersInTheRoom.push(data.player);
         this.playersInTheRoom = Object.assign(this.playersInTheRoom, data.playersInTheRoom);
         
         this.resizeCanvas();
+        this.socketEvents();
 
         if(typeof callback == 'function') callback(data);
 
+    });
+
+    this.socket.on('multiplayer disabled', () => {
+        this.socket.off('login');
+        this.socket.off('logged');
+        this.socket.off('multiplayer disabled');
+
+        this.interface.dialogBox.alert('Danied', 'Local multiplayer disabled.');
     });
 
 }
@@ -145,21 +156,27 @@ Game.prototype.socketEvents = function(){
 
     });
 
-    this.socket.on('newPlayer', player =>
-        this.playersInTheRoom.push(player));
+    this.socket.on('newPlayer', player =>{
+        this.playersInTheRoom.push(player);
+        this.interface.listPlayersInTheRoom();
+    });
 
     this.socket.on('prepare multiplayer', arr => {
+
         for (let i = arr.length - 1; i >= 0; i--) {
             const player = arr[i];
             this.playersInTheRoom.push(player);
         }
+
         this.socket.emit('start');
+
     });
 
     this.socket.on('playersInTheRoom update', data => {
         var i = data.i;
         delete data.i;
-        this.playersInTheRoom[i] = Object.assign(this.playersInTheRoom[i], data);        
+        this.playersInTheRoom[i] = Object.assign(this.playersInTheRoom[i], data);  
+        game.interface.listPlayersInTheRoom();      
     });
 
     this.socket.on('delPlayer', i => {

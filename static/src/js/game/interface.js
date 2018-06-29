@@ -14,22 +14,51 @@ function Interface(game){
         $multiplayerMenu = $interface.querySelector('#multiplayer-menu'),
         $multiplayerSubmit = $multiplayerMenu.querySelector('.submit'),
         $player2Name = $multiplayerMenu.querySelector('[name="player_name"]'),
-        $playersQtn = $multiplayerMenu.querySelector('.input-number');
+        $playersQtn = $multiplayerMenu.querySelector('.input-number'),
+        
+        $multiplayerLocal = $interface.querySelector('#multiplayer-local'),
+        $multiplayerLocalMenu = $interface.querySelector('#multiplayer-local-menu'),
+        $connectedPlayers = $interface.querySelectorAll('.connected-players ul');
 
+    this.dialogBox = new DialogBox($interface);
+    const snakeChooser = new SnakeChooser($interface);
+    new InputNumber();
+    
     this.closeModal = () => $modal.classList.add('closed');
-
     this.open = what => $interface.className = what;
 
-    const snakeChooser = new SnakeChooser($interface);
-    const dialogBox = new DialogBox($interface);
-    new InputNumber();
+    this.listPlayersInTheRoom = () => {
+        for (let i = $connectedPlayers.length - 1; i >= 0; i--) {
+            const $_connectedPlayers = $connectedPlayers[i];
+
+            let playersInTheRoomLength = game.playersInTheRoom.length;
+            let lis = '';
+
+            for (let j = 0; j < playersInTheRoomLength; j++) {
+                const playerInTheRoom = game.playersInTheRoom[j];
+                console.log(gameProps.snakes.colors[playerInTheRoom.color]);
+                lis += `<li>
+                            <span
+                                style="color: ${gameProps.snakes.colors[playerInTheRoom.color]};">
+                                ${playerInTheRoom.nickname}
+                            </span>
+                            <div class="snake"
+                                style="background: ${gameProps.snakes.colors[playerInTheRoom.color]};
+                                width: ${game.tileSize}px; height: ${game.tileSize}px;">
+                            </div>
+                        </li>`;
+            }
+
+            $_connectedPlayers.innerHTML = lis;
+
+        }
+    }
 
     var $welcomeText = $mainMenu.querySelector('#welcome');
     $loginForm.addEventListener('submit', e => {
         game.login($inputNickname.value, data => {
 
             $welcomeText.innerHTML = `Hi, ${$inputNickname.value}`;
-
             snakeChooser.changeSnakeColor();
             this.open('after-login');
 
@@ -42,8 +71,18 @@ function Interface(game){
 
     $submitChooser.addEventListener('click', () => {
 
+        var colorsInUse = game.colorsInUse;
+        if(colorsInUse.includes(snakeChooser.currentColor))
+            return this.dialogBox.alert('Denied', 'This color is being used.');
+
         game.socket.emit('changeColor', snakeChooser.currentColor);
-        this.open('main-menu');
+
+        if(game.multiplayerLocalAllow){
+            this.listPlayersInTheRoom();
+            $multiplayerLocalMenu.className = 'multiplayer-local-viewer';
+            this.open('multiplayer-local-menu');
+        }else
+            this.open('main-menu');
 
     });
 
@@ -59,13 +98,22 @@ function Interface(game){
 
         var colorsInUse = game.colorsInUse;
         if(colorsInUse.includes(snakeChooser.currentColor))
-            return dialogBox.alert('Denied', 'This color is being used.');
+            return this.dialogBox.alert('Denied', 'This color is being used.');
 
         game.socket.emit('prepare multiplayer', {
             nickname: $player2Name.value,
             color: snakeChooser.currentColor,
             nPlayers: $playersQtn.getAttribute('data-value')
         });
+
+    });
+
+    $multiplayerLocal.addEventListener('click', () => {
+
+        this.open('multiplayer-local-menu');
+
+        game.multiplayerLocalAllow = true;
+        game.socket.emit('multiplayer-local-allow');
 
     });
 

@@ -1,14 +1,11 @@
 //=require game/*.js
 
-var game = new Game();
-
 io.on('connection', socket => {
-
-    var multiplayerLocalAllow = false;
 
     socket.on('login', data => {
 
-        if(io.engine.clientsCount && !multiplayerLocalAllow) return;
+        if(game.playersInTheRoom.length && !game.multiplayerLocalAllow)
+            return socket.emit('multiplayer disabled');
 
         let iterator = game.playersInTheRoom.length;
 
@@ -20,6 +17,7 @@ io.on('connection', socket => {
 
         socket.emit('logged', {
             myID: player.id,
+            multiplayerLocal: game.multiplayerLocalAllow,
             player: player,
             playersInTheRoom: game.playersInTheRoom,
             gameProps: gameProps
@@ -29,7 +27,7 @@ io.on('connection', socket => {
         socket.broadcast.emit('newPlayer', player);
 
         socket.on('disconnect', () => {
-            if(io.engine.clientsCount == 0)
+            if(io.engine.clientsCount == 1)
                 game.playersInTheRoom = [];
             else{
                 delete game.playersInTheRoom[iterator];
@@ -53,14 +51,21 @@ io.on('connection', socket => {
 
         socket.on('start', () => {
 
+            if(game.playersInTheRoom.length && !game.multiplayerLocalAllow){
+                if(socket.id != game.playersInTheRoom[0].id) return;
+            }
+
             io.emit('start');
             game.newGame();
 
         });
 
-        socket.on('moveTo', data => snakeEvent.emit('moveTo', data));
+        socket.on('moveTo', data => game.event.emit('moveTo', data));
 
         socket.on('prepare multiplayer', data => {
+
+            if(game.playersInTheRoom.length && game.multiplayerLocalAllow)
+                return;
 
             let players = [];
             let colorsInUse = game.colorsInUse;
@@ -96,6 +101,12 @@ io.on('connection', socket => {
 
             io.emit('prepare multiplayer', players);
             
+        });
+
+        socket.on('multiplayer-local-allow', () =>{
+
+            game.multiplayerLocalAllow = true;
+
         });
     
     });

@@ -6,16 +6,23 @@ function Snake(game, props){
     this.body = [];
     this.color = 0;
     this.bodyStart = [0, 0];
+    this.killed = false;
 
     this.merge(props);
 
-    this.killed = false;
+    if(this.idLocal == 0) this.touchArea = 'all';
 
+    if(this.idLocal == 1){
+        game.players[0].touchArea = 'right';
+        this.touchArea = 'left';
+    }
+
+    console.log(this);
     game.engine.add(this);
 
     if(!isNaN(this.idLocal)) new SnakeControls(this, game);
 
-    game.socket.on(`snakeUpdate-${this.id}`, this.update);
+    game.socket.on(`snakeUpdate-${this.id}`, (data) => this.update(data));
 
     this.draw = () => {
 

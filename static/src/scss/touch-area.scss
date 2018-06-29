@@ -13,4 +13,10 @@
         height: 100%;
         float: left;
     }
+
+    &.playing{
+        #touch-areas{
+            z-index: 99;
+        }
+    }
 }
