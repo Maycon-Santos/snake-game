@@ -34,6 +34,8 @@
                         justify-content: space-between;
                         align-items: center;
 
+                        span{ color: $green-002; }
+
                         .snake{
                             margin: 0;
                             &::before{ margin-left: -200%; }
@@ -60,7 +62,9 @@
             }
 
             &.multiplayer-local-viewer{
-                h4, button{ display: none; }
+                h4{ color: $green-004; }
+                button{ display: none; }
+                .connected-players{ margin-top: 10px; }
             }
         }
     }

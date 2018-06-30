@@ -26,6 +26,8 @@ io.on('connection', socket => {
         game.playersInTheRoom.push(player);
         socket.broadcast.emit('newPlayer', player);
 
+        io.emit('teste', game.playersInTheRoom);
+
         socket.on('disconnect', () => {
             if(io.engine.clientsCount == 1)
                 game.playersInTheRoom = [];
@@ -103,11 +105,8 @@ io.on('connection', socket => {
             
         });
 
-        socket.on('multiplayer-local-allow', () =>{
-
-            game.multiplayerLocalAllow = true;
-
-        });
+        socket.on('multiplayer-local-allow', () =>
+            game.multiplayerLocalAllow = true);
     
     });
 

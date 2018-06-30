@@ -18,7 +18,8 @@ function Interface(game){
         
         $multiplayerLocal = $interface.querySelector('#multiplayer-local'),
         $multiplayerLocalMenu = $interface.querySelector('#multiplayer-local-menu'),
-        $connectedPlayers = $interface.querySelectorAll('.connected-players ul');
+        $connectedPlayers = $interface.querySelectorAll('.connected-players ul'),
+        $multiplayerLocalMenuSubmit = $multiplayerLocalMenu.querySelector('.submit');
 
     this.dialogBox = new DialogBox($interface);
     const snakeChooser = new SnakeChooser($interface);
@@ -36,7 +37,6 @@ function Interface(game){
 
             for (let j = 0; j < playersInTheRoomLength; j++) {
                 const playerInTheRoom = game.playersInTheRoom[j];
-                console.log(gameProps.snakes.colors[playerInTheRoom.color]);
                 lis += `<li>
                             <span
                                 style="color: ${gameProps.snakes.colors[playerInTheRoom.color]};">
@@ -80,6 +80,9 @@ function Interface(game){
         if(game.multiplayerLocalAllow){
             this.listPlayersInTheRoom();
             $multiplayerLocalMenu.className = 'multiplayer-local-viewer';
+            $multiplayerLocalMenu
+                .querySelector('h4')
+                .innerText = 'Waiting to play ...';
             this.open('multiplayer-local-menu');
         }else
             this.open('main-menu');
@@ -114,6 +117,12 @@ function Interface(game){
 
         game.multiplayerLocalAllow = true;
         game.socket.emit('multiplayer-local-allow');
+
+    });
+
+    $multiplayerLocalMenuSubmit.addEventListener('click', () => {
+
+        game.socket.emit('start');
 
     });
 

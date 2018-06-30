@@ -124,9 +124,11 @@ Game.prototype.login = function(playerNickname, callback){
         this.multiplayerLocalAllow = data.multiplayerLocal;
 
         this.id = data.myID;
+
+        this.playersInTheRoom = data.playersInTheRoom;
+    
         this.playersInTheRoom.push(data.player);
-        this.playersInTheRoom = Object.assign(this.playersInTheRoom, data.playersInTheRoom);
-        
+
         this.resizeCanvas();
         this.socketEvents();
 
