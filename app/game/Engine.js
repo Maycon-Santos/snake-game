@@ -1,10 +1,9 @@
 function Engine(){
 
-    var objects = [];
+    var objects = [],
+        updates = {};
 
     const runFunction = (fn, ...args) => {
-
-        //io.emit('teste', objects);
 
         var i = objects.length;
 
@@ -14,14 +13,13 @@ function Engine(){
 
     }
 
-    // const update = (deltaTime) => {
-    //     io.emit('teste', deltaTime);
-    // }
-
     const update = (deltaTime) => runFunction('update', deltaTime);
 
-    const draw = () => {
-
+    const sendUpdate = () => {
+        if(Object.keys(updates).length){
+            io.emit('update', updates);
+            updates = {};
+        }
     }
 
     this.run = () => {
@@ -34,11 +32,10 @@ function Engine(){
             let deltaTime = (now - lastUpdate) / 1000;
             deltaTime = Math.min(1, deltaTime);
 
-            if(deltaTime >= 1)
-                lastUpdate = now;
+            if(deltaTime >= 1) lastUpdate = now;
 
             update(deltaTime);
-            draw();
+            sendUpdate();
 
         };
 
@@ -47,6 +44,15 @@ function Engine(){
     }
 
     this.add = (object) => objects.push(object);
+
+    this.sendUpdate = (object, i, update) => {
+
+        if(!updates[object]) updates[object] = [];
+        if(!updates[object][i]) updates[object][i] = {};
+        
+        updates[object][i] = Object.assign(updates[object][i], update);
+
+    }
 
     this.clear = () => objects = [];
 

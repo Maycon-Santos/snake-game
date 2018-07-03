@@ -199,6 +199,17 @@ Game.prototype.socketEvents = function () {
         delete _this4.playersInTheRoom[i];
         _this4.playersInTheRoom = _this4.playersInTheRoom.filter(Boolean);
     });
+    this.socket.on('update', function (updates) {
+        for (var key in updates) {
+            for (var i in updates[key]) {
+                _this4[key][i] = Object.assign(_this4[key][i], updates[key][i]);
+            }
+        }    //console.log(updates.snakes[0].body);
+             // for (const key in updates[i]) {
+             //     const update = object[key];
+             //     this[key].merge(update[key]);
+             // }
+    });
 };
 var gameProps = {};
 function gestureViewer(game) {
@@ -340,6 +351,7 @@ function Snake(game, props) {
     var _this = this;
     this.id = null;
     this.idLocal = null;
+    this.enhancerId = null;
     this.nickname = null;
     this.body = [];
     this.color = 0;
@@ -352,13 +364,9 @@ function Snake(game, props) {
         game.players[0].touchArea = 'right';
         this.touchArea = 'left';
     }
-    console.log(this);
     game.engine.add(this);
     if (!isNaN(this.idLocal))
         new SnakeControls(this, game);
-    game.socket.on('snakeUpdate-' + this.id, function (data) {
-        return _this.update(data);
-    });
     this.draw = function () {
         if (_this.killed)
             return;
@@ -455,7 +463,6 @@ function SnakeControls(snake, game) {
         var $touchAreaKeys = Object.keys($touchArea);
         var _loop = function _loop(i) {
             var area = $touchAreaKeys[i];
-            console.log($touchArea[area]);
             $touchArea[area].addEventListener('touchstart', function (e) {
                 return touchstart[area] = touchPos(e);
             });

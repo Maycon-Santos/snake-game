@@ -54,8 +54,6 @@ Game.prototype.for = function(object, fn){
 
 Game.prototype.addPlayers = function(){
 
-    io.emit('teste', this.playersInTheRoom);
-
     for (let i = this.playersInTheRoom.length - 1; i >= 0 ; i--) {
         const playerInTheRoom = this.playersInTheRoom[i];
 

@@ -68,7 +68,6 @@ function SnakeControls(snake, game){
         const $touchAreaKeys = Object.keys($touchArea);
         for (let i = $touchAreaKeys.length - 1; i >=0 ; i--) {
             const area = $touchAreaKeys[i];
-            console.log($touchArea[area]);
             $touchArea[area].addEventListener('touchstart', e => touchstart[area] = touchPos(e));
             $touchArea[area].addEventListener('touchmove', e => { touchmove[area] = touchPos(e); touchHandle(area); });
         }

@@ -65,11 +65,10 @@ electron.app.on('window-all-closed', () => {
 });
 function Engine(){
 
-    var objects = [];
+    var objects = [],
+        updates = {};
 
     const runFunction = (fn, ...args) => {
-
-        //io.emit('teste', objects);
 
         var i = objects.length;
 
@@ -79,14 +78,13 @@ function Engine(){
 
     }
 
-    // const update = (deltaTime) => {
-    //     io.emit('teste', deltaTime);
-    // }
-
     const update = (deltaTime) => runFunction('update', deltaTime);
 
-    const draw = () => {
-
+    const sendUpdate = () => {
+        if(Object.keys(updates).length){
+            io.emit('update', updates);
+            updates = {};
+        }
     }
 
     this.run = () => {
@@ -99,11 +97,10 @@ function Engine(){
             let deltaTime = (now - lastUpdate) / 1000;
             deltaTime = Math.min(1, deltaTime);
 
-            if(deltaTime >= 1)
-                lastUpdate = now;
+            if(deltaTime >= 1) lastUpdate = now;
 
             update(deltaTime);
-            draw();
+            sendUpdate();
 
         };
 
@@ -112,6 +109,15 @@ function Engine(){
     }
 
     this.add = (object) => objects.push(object);
+
+    this.sendUpdate = (object, i, update) => {
+
+        if(!updates[object]) updates[object] = [];
+        if(!updates[object][i]) updates[object][i] = {};
+        
+        updates[object][i] = Object.assign(updates[object][i], update);
+
+    }
 
     this.clear = () => objects = [];
 
@@ -202,8 +208,6 @@ Game.prototype.for = function(object, fn){
 
 Game.prototype.addPlayers = function(){
 
-    io.emit('teste', this.playersInTheRoom);
-
     for (let i = this.playersInTheRoom.length - 1; i >= 0 ; i--) {
         const playerInTheRoom = this.playersInTheRoom[i];
 
@@ -259,7 +263,7 @@ var gameProps = {
     },
 
     foods: {
-        qnt: 1,
+        qnt: 2,
 
         types: {
             normal: {
@@ -344,6 +348,7 @@ const newBodyStart = id => [5 * (id+1), 5 * (id+1), 'down'];
 function Snake(game, props){
 
     this.id = null;
+    this.enhancerId = null;
     this.body = [];
 
     this.increase = 0;
@@ -406,10 +411,15 @@ function Snake(game, props){
     Object.defineProperty(this, 'killed', {
         get: () => killed,
         set: (Bool) => {
-            killed = !!Bool;
-            io.emit(`snakeUpdate-${this.id}`, {killed: killed});
+            if(Bool != killed){
+                killed = !!Bool;
+                this.senUpdate({killed: killed});
+            }
         }
     });
+
+    this.senUpdate = update =>
+        game.engine.sendUpdate('players', this.enhancerId, update);
 
     game.engine.add(this);
     const snakeControls = new SnakeControls(this, game);
@@ -429,7 +439,7 @@ function Snake(game, props){
         this.body.splice(0, 0, nextPos());
         this.increase < 1 ? this.body.pop() : this.increase--;
 
-        io.emit(`snakeUpdate-${this.id}`, {body: this.body});
+        this.senUpdate({body: this.body});
         
     }
 
@@ -496,7 +506,7 @@ Snake.prototype.newBody = function(){
 
     }
 
-    io.emit(`snakeUpdate-${this.id}`, {body: this.body});
+    this.senUpdate({body: this.body});
 
 }
 function SnakeControls(snake, game){
@@ -530,10 +540,11 @@ io.on('connection', socket => {
         if(game.playersInTheRoom.length && !game.multiplayerLocalAllow)
             return socket.emit('multiplayer disabled');
 
-        let iterator = game.playersInTheRoom.length;
+        let enhancerId = game.playersInTheRoom.length;
 
         let player = {
             id: socket.id,
+            enhancerId: enhancerId,
             nickname: data.playerNickname,
             bodyStart: newBodyStart(game.playersInTheRoom.length)
         }
@@ -549,15 +560,13 @@ io.on('connection', socket => {
         game.playersInTheRoom.push(player);
         socket.broadcast.emit('newPlayer', player);
 
-        io.emit('teste', game.playersInTheRoom);
-
         socket.on('disconnect', () => {
             if(io.engine.clientsCount == 1)
                 game.playersInTheRoom = [];
             else{
-                delete game.playersInTheRoom[iterator];
+                delete game.playersInTheRoom[enhancerId];
                 game.playersInTheRoom = game.playersInTheRoom.filter(Boolean);
-                io.emit('delPlayer', iterator);
+                io.emit('delPlayer', enhancerId);
             }
         });
 
@@ -569,7 +578,7 @@ io.on('connection', socket => {
             if(color >= 0 && color < gameProps.snakes.colors.length){
                 player.color = color;
                 io.emit(`snakeUpdate-${socket.id}`, {color: color});
-                io.emit(`playersInTheRoom update`, {i: iterator, color: color});
+                io.emit(`playersInTheRoom update`, {i: enhancerId, color: color});
             }
 
         });
@@ -600,6 +609,7 @@ io.on('connection', socket => {
             let player2 = {
                 id: `${socket.id}[1]`,
                 idLocal: 1,
+                enhancerId: game.playersInTheRoom.length,
                 nickname: data.nickname || 'Player 2',
                 bodyStart: newBodyStart(game.playersInTheRoom.length),
                 color: data.color
@@ -614,6 +624,7 @@ io.on('connection', socket => {
                 
                 let player = {
                     id: `comp-${i}`,
+                    enhancerId: game.playersInTheRoom.length,
                     nickname: `Player ${game.playersInTheRoom.length + 1}`,
                     bodyStart: newBodyStart(game.playersInTheRoom.length),
                     color: game.generateColor()

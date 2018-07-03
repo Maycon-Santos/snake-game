@@ -2,6 +2,7 @@ function Snake(game, props){
 
     this.id = null;
     this.idLocal = null;
+    this.enhancerId = null;
     this.nickname = null;
     this.body = [];
     this.color = 0;
@@ -17,12 +18,9 @@ function Snake(game, props){
         this.touchArea = 'left';
     }
 
-    console.log(this);
     game.engine.add(this);
 
     if(!isNaN(this.idLocal)) new SnakeControls(this, game);
-
-    game.socket.on(`snakeUpdate-${this.id}`, (data) => this.update(data));
 
     this.draw = () => {
 

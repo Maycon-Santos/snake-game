@@ -7,10 +7,11 @@ io.on('connection', socket => {
         if(game.playersInTheRoom.length && !game.multiplayerLocalAllow)
             return socket.emit('multiplayer disabled');
 
-        let iterator = game.playersInTheRoom.length;
+        let enhancerId = game.playersInTheRoom.length;
 
         let player = {
             id: socket.id,
+            enhancerId: enhancerId,
             nickname: data.playerNickname,
             bodyStart: newBodyStart(game.playersInTheRoom.length)
         }
@@ -26,15 +27,13 @@ io.on('connection', socket => {
         game.playersInTheRoom.push(player);
         socket.broadcast.emit('newPlayer', player);
 
-        io.emit('teste', game.playersInTheRoom);
-
         socket.on('disconnect', () => {
             if(io.engine.clientsCount == 1)
                 game.playersInTheRoom = [];
             else{
-                delete game.playersInTheRoom[iterator];
+                delete game.playersInTheRoom[enhancerId];
                 game.playersInTheRoom = game.playersInTheRoom.filter(Boolean);
-                io.emit('delPlayer', iterator);
+                io.emit('delPlayer', enhancerId);
             }
         });
 
@@ -46,7 +45,7 @@ io.on('connection', socket => {
             if(color >= 0 && color < gameProps.snakes.colors.length){
                 player.color = color;
                 io.emit(`snakeUpdate-${socket.id}`, {color: color});
-                io.emit(`playersInTheRoom update`, {i: iterator, color: color});
+                io.emit(`playersInTheRoom update`, {i: enhancerId, color: color});
             }
 
         });
@@ -77,6 +76,7 @@ io.on('connection', socket => {
             let player2 = {
                 id: `${socket.id}[1]`,
                 idLocal: 1,
+                enhancerId: game.playersInTheRoom.length,
                 nickname: data.nickname || 'Player 2',
                 bodyStart: newBodyStart(game.playersInTheRoom.length),
                 color: data.color
@@ -91,6 +91,7 @@ io.on('connection', socket => {
                 
                 let player = {
                     id: `comp-${i}`,
+                    enhancerId: game.playersInTheRoom.length,
                     nickname: `Player ${game.playersInTheRoom.length + 1}`,
                     bodyStart: newBodyStart(game.playersInTheRoom.length),
                     color: game.generateColor()

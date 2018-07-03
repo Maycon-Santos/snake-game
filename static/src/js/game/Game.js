@@ -158,7 +158,7 @@ Game.prototype.socketEvents = function(){
 
     });
 
-    this.socket.on('newPlayer', player =>{
+    this.socket.on('newPlayer', player => {
         this.playersInTheRoom.push(player);
         this.interface.listPlayersInTheRoom();
     });
@@ -184,6 +184,25 @@ Game.prototype.socketEvents = function(){
     this.socket.on('delPlayer', i => {
         delete this.playersInTheRoom[i];
         this.playersInTheRoom = this.playersInTheRoom.filter(Boolean);
+    });
+
+    this.socket.on('update', updates => {
+
+        for (const key in updates) {
+            for (const i in updates[key]) {
+                this[key][i] = Object.assign(this[key][i], updates[key][i]);
+            }
+        }
+
+        //console.log(updates.snakes[0].body);
+
+        // for (const key in updates[i]) {
+        //     const update = object[key];
+            
+        //     this[key].merge(update[key]);
+
+        // }
+
     });
 
 }

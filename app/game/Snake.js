@@ -1,6 +1,7 @@
 function Snake(game, props){
 
     this.id = null;
+    this.enhancerId = null;
     this.body = [];
 
     this.increase = 0;
@@ -63,10 +64,15 @@ function Snake(game, props){
     Object.defineProperty(this, 'killed', {
         get: () => killed,
         set: (Bool) => {
-            killed = !!Bool;
-            io.emit(`snakeUpdate-${this.id}`, {killed: killed});
+            if(Bool != killed){
+                killed = !!Bool;
+                this.senUpdate({killed: killed});
+            }
         }
     });
+
+    this.senUpdate = update =>
+        game.engine.sendUpdate('players', this.enhancerId, update);
 
     game.engine.add(this);
     const snakeControls = new SnakeControls(this, game);
@@ -86,7 +92,7 @@ function Snake(game, props){
         this.body.splice(0, 0, nextPos());
         this.increase < 1 ? this.body.pop() : this.increase--;
 
-        io.emit(`snakeUpdate-${this.id}`, {body: this.body});
+        this.senUpdate({body: this.body});
         
     }
 
@@ -153,6 +159,6 @@ Snake.prototype.newBody = function(){
 
     }
 
-    io.emit(`snakeUpdate-${this.id}`, {body: this.body});
+    this.senUpdate({body: this.body});
 
 }
