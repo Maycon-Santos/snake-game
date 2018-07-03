@@ -47,4 +47,6 @@ function Engine(game){
         }
     }
 
+    this.clear = () => objects = [];
+
 }

@@ -19,7 +19,13 @@ function Interface(game){
         $multiplayerLocal = $interface.querySelector('#multiplayer-local'),
         $multiplayerLocalMenu = $interface.querySelector('#multiplayer-local-menu'),
         $connectedPlayers = $interface.querySelectorAll('.connected-players ul'),
-        $multiplayerLocalMenuSubmit = $multiplayerLocalMenu.querySelector('.submit');
+        $multiplayerLocalMenuSubmit = $multiplayerLocalMenu.querySelector('.submit'),
+        $playerCounter = $multiplayerLocalMenu.querySelector('.player-counter span'),
+        $address = $multiplayerLocalMenu.querySelector('.address'),
+        
+        $gameOver = $interface.querySelector('#game-over'),
+        $gameOverText = $gameOver.querySelector('h2 span'),
+        $gameOverSubmit = $gameOver.querySelector('.submit');
 
     this.dialogBox = new DialogBox($interface);
     const snakeChooser = new SnakeChooser($interface);
@@ -50,8 +56,18 @@ function Interface(game){
             }
 
             $_connectedPlayers.innerHTML = lis;
+            $playerCounter.innerText = playersInTheRoomLength != 0 ? playersInTheRoomLength : 'o';
 
         }
+    }
+
+    this.gameOver = () => {
+
+        $gameOverText.style.color = gameProps.snakes.colors[game.winner.color] || '';
+        $gameOverText.innerText = game.winner.nickname || 'Nobody';
+
+        this.open('game-over');
+
     }
 
     var $welcomeText = $mainMenu.querySelector('#welcome');
@@ -113,15 +129,18 @@ function Interface(game){
 
     $multiplayerLocal.addEventListener('click', () => {
 
-        this.open('multiplayer-local-menu');
-
         game.multiplayerLocalAllow = true;
         game.socket.emit('multiplayer-local-allow');
 
     });
 
-    $multiplayerLocalMenuSubmit.addEventListener('click', () => {
+    this.openMultiplayerLocal = adress => {
+        $address.innerText = adress;
+        this.open('multiplayer-local-menu');
+    }
 
+    $multiplayerLocalMenuSubmit.addEventListener('click', () => {
+        
         game.socket.emit('start');
 
     });

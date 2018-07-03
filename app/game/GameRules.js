@@ -2,6 +2,8 @@ function GameRules(game){
 
     game.engine.add(this);
 
+    this.deathCounter = 0;
+
     const snakeColision = () => {
 
         game.for('players', (player, id) => {
@@ -31,8 +33,6 @@ function GameRules(game){
             });
 
         });
-
-        game.for('players', player => player.killed = player.collided); // Kill the player if collided
     
     }
 
@@ -51,8 +51,22 @@ function GameRules(game){
 
         if(game.status != 'playing') return;
 
-        snakeColision();
-        snakeAteFood();
+        if(game.mode == 'deathmatch'){
+
+            snakeColision();
+
+            game.for('players', player => {
+                if(player.killed) return;
+                player.killed = player.collided; // Kill the player if collided
+                if(player.killed) this.deathCounter++;
+            });
+
+            if(this.deathCounter >= game.players.length - 1)
+                game.status = 'over';
+
+            snakeAteFood();
+
+        }
 
     }
 

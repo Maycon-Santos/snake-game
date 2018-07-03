@@ -28,9 +28,10 @@ io.on('connection', socket => {
         socket.broadcast.emit('newPlayer', player);
 
         socket.on('disconnect', () => {
-            if(io.engine.clientsCount == 1)
+            if(io.engine.clientsCount == 0){
                 game.playersInTheRoom = [];
-            else{
+                game.clear();
+            }else{
                 delete game.playersInTheRoom[enhancerId];
                 game.playersInTheRoom = game.playersInTheRoom.filter(Boolean);
                 io.emit('delPlayer', enhancerId);
@@ -86,8 +87,6 @@ io.on('connection', socket => {
             players.push(player2);
 
             for (let i = 0; i < data.nPlayers; i++) {
-
-                if(i == game.playersInTheRoom[0].color) continue;
                 
                 let player = {
                     id: `comp-${i}`,
@@ -106,8 +105,16 @@ io.on('connection', socket => {
             
         });
 
-        socket.on('multiplayer-local-allow', () =>
-            game.multiplayerLocalAllow = true);
+        socket.on('multiplayer-local-allow', () => {
+
+            game.multiplayerLocalAllow = true;
+
+            socket.on('disconnect', () =>
+                game.multiplayerLocalAllow = false);
+
+            socket.emit('multiplayer-local-address', `${internalIp.v4.sync()}:${server.address().port}`);
+
+        });
     
     });
 

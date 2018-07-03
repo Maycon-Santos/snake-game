@@ -4,8 +4,8 @@ const electron = require('electron');
 const events = require('events');
 const express = require('express');
 const app = express();
-const port = 5000;
-const server = app.listen(port);
+const internalIp = require('internal-ip');
+const server = app.listen(0);
 
 var game = new Game();
 

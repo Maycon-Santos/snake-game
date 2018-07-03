@@ -14,13 +14,20 @@
         transition-duration: .3s;
         transition-timing-function: ease-in-out;
 
-        background: $green-001;
+        box-shadow: 0 0 0 2px $green-004;
     }
 
     &.toStart{
         > canvas{
             width: 100%;
             height: 100%;
+        }
+    }
+
+    &.playing{
+        > canvas{
+            background-size: 15px 15px;
+            background-image: linear-gradient(to right, darken($green-001, 5%) 1px, transparent 1px), linear-gradient(to bottom, darken($green-001, 5%) 1px, transparent 1px);
         }
     }
 }

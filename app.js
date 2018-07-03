@@ -33,8 +33,8 @@ const electron = require('electron');
 const events = require('events');
 const express = require('express');
 const app = express();
-const port = 5000;
-const server = app.listen(port);
+const internalIp = require('internal-ip');
+const server = app.listen(0);
 
 var game = new Game();
 
@@ -56,7 +56,7 @@ electron.app.on('ready', () => {
 
     app.use(express.static('static'));
     
-    mainWindow.loadURL(`http://localhost:${port}`);
+    mainWindow.loadURL(`http://localhost:${server.address().port}`);
 
 });
 
@@ -156,8 +156,9 @@ function Game(){
 
     this.playersInTheRoom = [];
 
-    this.status = 'toStart';
     this.engine = new Engine(this);
+
+    this.mode = 'deathmatch';
 
     this.multiplayerLocalAllow = false;
 
@@ -174,15 +175,31 @@ function Game(){
         }
     });
 
+    var status = 'toStart';
+    Object.defineProperty(this, 'status', {
+        get: () => status,
+        set: st => {
+            if(st == 'over') {
+                io.emit('game over');
+                this.clear();
+            }
+            status = st;
+        }
+    });
+
 }
 
 Game.prototype.event = new events.EventEmitter();
 
-Game.prototype.newGame = function(){
-
+Game.prototype.clear = function(){
     this.players = [];
     this.foods = [];
     this.engine.clear();
+}
+
+Game.prototype.newGame = function(){
+
+    this.clear();
     
     new GameRules(this);
 
@@ -289,6 +306,8 @@ function GameRules(game){
 
     game.engine.add(this);
 
+    this.deathCounter = 0;
+
     const snakeColision = () => {
 
         game.for('players', (player, id) => {
@@ -318,8 +337,6 @@ function GameRules(game){
             });
 
         });
-
-        game.for('players', player => player.killed = player.collided); // Kill the player if collided
     
     }
 
@@ -338,8 +355,22 @@ function GameRules(game){
 
         if(game.status != 'playing') return;
 
-        snakeColision();
-        snakeAteFood();
+        if(game.mode == 'deathmatch'){
+
+            snakeColision();
+
+            game.for('players', player => {
+                if(player.killed) return;
+                player.killed = player.collided; // Kill the player if collided
+                if(player.killed) this.deathCounter++;
+            });
+
+            if(this.deathCounter >= game.players.length - 1)
+                game.status = 'over';
+
+            snakeAteFood();
+
+        }
 
     }
 
@@ -561,9 +592,10 @@ io.on('connection', socket => {
         socket.broadcast.emit('newPlayer', player);
 
         socket.on('disconnect', () => {
-            if(io.engine.clientsCount == 1)
+            if(io.engine.clientsCount == 0){
                 game.playersInTheRoom = [];
-            else{
+                game.clear();
+            }else{
                 delete game.playersInTheRoom[enhancerId];
                 game.playersInTheRoom = game.playersInTheRoom.filter(Boolean);
                 io.emit('delPlayer', enhancerId);
@@ -619,8 +651,6 @@ io.on('connection', socket => {
             players.push(player2);
 
             for (let i = 0; i < data.nPlayers; i++) {
-
-                if(i == game.playersInTheRoom[0].color) continue;
                 
                 let player = {
                     id: `comp-${i}`,
@@ -639,8 +669,16 @@ io.on('connection', socket => {
             
         });
 
-        socket.on('multiplayer-local-allow', () =>
-            game.multiplayerLocalAllow = true);
+        socket.on('multiplayer-local-allow', () => {
+
+            game.multiplayerLocalAllow = true;
+
+            socket.on('disconnect', () =>
+                game.multiplayerLocalAllow = false);
+
+            socket.emit('multiplayer-local-address', `${internalIp.v4.sync()}:${server.address().port}`);
+
+        });
     
     });
 

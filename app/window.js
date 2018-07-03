@@ -11,7 +11,7 @@ electron.app.on('ready', () => {
 
     app.use(express.static('static'));
     
-    mainWindow.loadURL(`http://localhost:${port}`);
+    mainWindow.loadURL(`http://localhost:${server.address().port}`);
 
 });
 

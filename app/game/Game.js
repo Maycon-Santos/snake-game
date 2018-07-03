@@ -2,8 +2,9 @@ function Game(){
 
     this.playersInTheRoom = [];
 
-    this.status = 'toStart';
     this.engine = new Engine(this);
+
+    this.mode = 'deathmatch';
 
     this.multiplayerLocalAllow = false;
 
@@ -20,15 +21,31 @@ function Game(){
         }
     });
 
+    var status = 'toStart';
+    Object.defineProperty(this, 'status', {
+        get: () => status,
+        set: st => {
+            if(st == 'over') {
+                io.emit('game over');
+                this.clear();
+            }
+            status = st;
+        }
+    });
+
 }
 
 Game.prototype.event = new events.EventEmitter();
 
-Game.prototype.newGame = function(){
-
+Game.prototype.clear = function(){
     this.players = [];
     this.foods = [];
     this.engine.clear();
+}
+
+Game.prototype.newGame = function(){
+
+    this.clear();
     
     new GameRules(this);
 

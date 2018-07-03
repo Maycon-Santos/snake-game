@@ -11,11 +11,11 @@ const include = require("gulp-include");
 gulp.task('js', () =>
     gulp.src(['static/src/js/**/!(install-SW)*.js', '!static/src/js/serviceWorker/**/*.js', 'static/src/js/install-SW.js'])
         //.pipe(sourcemaps.init())
-        .pipe(babel({
-            presets: ['env']
-        }))
+        // .pipe(babel({
+        //     presets: ['env']
+        // }))
         .pipe(concat('snakeGame.js'))
-        .pipe(removeUseStrict())
+        //.pipe(removeUseStrict())
         //.pipe(uglify())
         //.pipe(sourcemaps.write('.'))
         .pipe(gulp.dest('static/js'))

@@ -8,6 +8,7 @@ function Game(canvas){
             else return console.error('Invalid value');
             canvas.width = this.tileSize * gameProps.tiles[0];
             canvas.height = this.tileSize * gameProps.tiles[1];
+            canvas.style.backgroundSize = `${this.tileSize}px ${this.tileSize}px`;
         },
         get: function(){ return tileSize; }
     });
@@ -35,6 +36,19 @@ function Game(canvas){
         }
     });
 
+    Object.defineProperty(this, 'winner', {
+        get: () => {
+
+            var winner;
+            this.for('players', player => {
+                if(!killed) winner = player;
+            });
+
+            return winner;
+            
+        }
+    });
+
     this.playersInTheRoom = [];
 
     this.id = null;
@@ -58,8 +72,25 @@ function Game(canvas){
 
 Game.prototype.newGame = function(){
 
+    this.interface.closeModal();
+    this.clear();
+
+    this.addPlayers();
+    this.addFoods();
+
     this.status = "playing";
 
+}
+
+Game.prototype.clear = function(){
+    this.players = [];
+    this.foods = [];
+    this.engine.clear();
+}
+
+Game.prototype.for = function(object, fn){
+    for (let id = this[object].length-1; id >= 0; id--)
+        fn(this[object][id], id);
 }
 
 Game.prototype.addPlayers = function(){
@@ -150,11 +181,24 @@ Game.prototype.socketEvents = function(){
 
     this.socket.on('start', () => {
         
-        this.interface.closeModal();
-
-        this.addPlayers();
-        this.addFoods();
         this.newGame();
+
+    });
+
+    game.socket.on('game over', () =>{
+
+        this.interface.gameOver();
+
+        // this.socket.off('game over');
+
+        // var winner = game.winner
+        //     ? `<span style="color: ${gameProps.snakes.colors[game.winner.color]}">${game.winner.nickname}</span>`
+        //     : 'Nobody';
+
+        // this.dialogBox.alert('Game over', `${winner} is the winner!`, () => {
+        //     game.status = 'toStart';
+        //     this.open('multiplayer-local-menu');
+        // });
 
     });
 
@@ -184,25 +228,18 @@ Game.prototype.socketEvents = function(){
     this.socket.on('delPlayer', i => {
         delete this.playersInTheRoom[i];
         this.playersInTheRoom = this.playersInTheRoom.filter(Boolean);
+        this.interface.listPlayersInTheRoom();
     });
 
     this.socket.on('update', updates => {
 
         for (const key in updates) {
-            for (const i in updates[key]) {
+            for (const i in updates[key])
                 this[key][i] = Object.assign(this[key][i], updates[key][i]);
-            }
         }
 
-        //console.log(updates.snakes[0].body);
-
-        // for (const key in updates[i]) {
-        //     const update = object[key];
-            
-        //     this[key].merge(update[key]);
-
-        // }
-
     });
+
+    this.socket.on('multiplayer-local-address', this.interface.openMultiplayerLocal);
 
 }
