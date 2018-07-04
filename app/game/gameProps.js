@@ -2,7 +2,7 @@ var gameProps = {
     tiles: [64, 36], // X, Y
 
     snakes: {
-        speed: 15,
+        speed: 20,
         initialSize: 3,
         initialDirection: "right",
         reverse: false,

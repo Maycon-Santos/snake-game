@@ -162,6 +162,8 @@ function Game(){
 
     this.multiplayerLocalAllow = false;
 
+    this.readyPlayers = 0;
+
     this.engine.run();
 
     Object.defineProperty(this, 'colorsInUse', {
@@ -175,12 +177,25 @@ function Game(){
         }
     });
 
+    Object.defineProperty(this, 'winner', {
+        get: () => {
+
+            var winner;
+            this.for('players', player => {
+                if(!player.killed) winner = player;
+            });
+
+            return winner;
+
+        }
+    });
+
     var status = 'toStart';
     Object.defineProperty(this, 'status', {
         get: () => status,
         set: st => {
             if(st == 'over') {
-                io.emit('game over');
+                io.emit('game over', this.winner);
                 this.clear();
             }
             status = st;
@@ -194,6 +209,7 @@ Game.prototype.event = new events.EventEmitter();
 Game.prototype.clear = function(){
     this.players = [];
     this.foods = [];
+    this.readyPlayers = 0;
     this.engine.clear();
 }
 
@@ -251,11 +267,34 @@ Game.prototype.generateColor = function(){
     return this.colorsInUse.includes(color) ? this.generateColor() : color;
 
 }
+
+Game.prototype.createPlayers = function(qnt){
+
+    let players = [];
+
+    for (let i = 0; i < qnt; i++) {
+        
+        let player = {
+            id: `comp-${i}`,
+            enhancerId: this.playersInTheRoom.length,
+            nickname: `Player ${this.playersInTheRoom.length + 1}`,
+            bodyStart: newBodyStart(this.playersInTheRoom.length),
+            color: this.generateColor()
+        }
+
+        this.playersInTheRoom.push(player);
+        players.push(player);
+        
+    }
+
+    return players;
+
+}
 var gameProps = {
     tiles: [64, 36], // X, Y
 
     snakes: {
-        speed: 15,
+        speed: 20,
         initialSize: 3,
         initialDirection: "right",
         reverse: false,
@@ -628,15 +667,26 @@ io.on('connection', socket => {
 
         socket.on('moveTo', data => game.event.emit('moveTo', data));
 
+        socket.on('prepare single player', nPlayers => {
+
+            if(game.playersInTheRoom.length && game.multiplayerLocalAllow)
+                return;
+
+            game.playersInTheRoom = [game.playersInTheRoom[0]];
+            io.emit('prepare', game.createPlayers(nPlayers));
+
+        });
+
         socket.on('prepare multiplayer', data => {
 
             if(game.playersInTheRoom.length && game.multiplayerLocalAllow)
                 return;
 
-            let players = [];
-            let colorsInUse = game.colorsInUse;
+            game.playersInTheRoom = [game.playersInTheRoom[0]];
 
-            if(colorsInUse.includes(data.color)) return;
+            if(game.colorsInUse.includes(data.color)) return;
+
+            let players = [];
 
             let player2 = {
                 id: `${socket.id}[1]`,
@@ -650,33 +700,34 @@ io.on('connection', socket => {
             game.playersInTheRoom.push(player2);
             players.push(player2);
 
-            for (let i = 0; i < data.nPlayers; i++) {
-                
-                let player = {
-                    id: `comp-${i}`,
-                    enhancerId: game.playersInTheRoom.length,
-                    nickname: `Player ${game.playersInTheRoom.length + 1}`,
-                    bodyStart: newBodyStart(game.playersInTheRoom.length),
-                    color: game.generateColor()
-                }
-        
-                game.playersInTheRoom.push(player);
-                players.push(player);
-                
-            }
+            players = [...players, ...game.createPlayers(data.nPlayers)];
 
-            io.emit('prepare multiplayer', players);
+            io.emit('prepare', players);
             
         });
 
         socket.on('multiplayer-local-allow', () => {
 
             game.multiplayerLocalAllow = true;
+            game.readyPlayers = 0;
 
             socket.on('disconnect', () =>
                 game.multiplayerLocalAllow = false);
 
             socket.emit('multiplayer-local-address', `${internalIp.v4.sync()}:${server.address().port}`);
+
+        });
+
+        socket.on('ready', () => {
+
+            game.readyPlayers++;
+
+            if(game.readyPlayers == game.playersInTheRoom.length && game.playersInTheRoom.length > 1){
+                io.emit('start');
+                game.newGame();
+            }
+
+            socket.on('disconnect', () => game.readyPlayers--);
 
         });
     

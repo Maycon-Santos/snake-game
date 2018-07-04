@@ -32,10 +32,12 @@ button, input{ outline: none; }
     border: none;
     background: $green-006;
 
-    &:hover{
+    &:not(:disabled):hover{
         cursor: pointer;
         background: $green-002;
     }
+
+    &:disabled{ color: $green-002; }
 }
 
 *::-webkit-scrollbar {

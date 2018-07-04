@@ -1,0 +1,5 @@
+#game{
+    #interface{
+        &:not(.single-player-menu) #single-player-menu{ display: none !important; }
+    }
+}

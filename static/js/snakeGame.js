@@ -1,3 +1,32 @@
+Array.prototype.isEqual = function(arr){
+
+    return JSON.stringify(this) === JSON.stringify(arr);
+
+}
+
+Array.prototype.sumWith = function(...arrays){
+    var arrays = [this, ...arrays].sort((a, b) => b.length - a.length), // Order by DESC
+        newArray = [...arrays[0]]; // Largest array of the list
+
+    for (let i = 1, arrLeng = arrays.length; i < arrLeng; i++) {
+        const array = arrays[i];
+        for (let j = 0, itemLeng = array.length; j < itemLeng; j++) {
+            const item = array[j];
+            newArray[j] += item;
+        }
+    }
+
+    return newArray;
+}
+
+Array.prototype.lastItem = function(){
+
+    return this[this.length - 1];
+
+}
+Object.prototype.merge = function(object){
+    for (const key in object) this[key] = object[key];
+}
 function Engine(game){
 
     var canvas = game.ctx.canvas;
@@ -22,17 +51,17 @@ function Engine(game){
 
     this.run = () => {
 
-        let engine = this,
-            start = performance.now();
+        // let engine = this,
+        //     start = performance.now();
 
-        requestAnimationFrame(function run(timestamp){
+        requestAnimationFrame(function run(){
 
-            let deltaTime = (timestamp - start) / 1000;
-            deltaTime = Math.min(1, deltaTime);
+            // let deltaTime = (timestamp - start) / 1000;
+            // deltaTime = Math.min(1, deltaTime);
 
             draw();
 
-            if(deltaTime >= 1) return engine.run();
+            // if(deltaTime >= 1) return engine.run();
             requestAnimationFrame(run);
 
         }.bind(this));
@@ -122,18 +151,7 @@ function Game(canvas){
         }
     });
 
-    Object.defineProperty(this, 'winner', {
-        get: () => {
-
-            var winner;
-            this.for('players', player => {
-                if(!killed) winner = player;
-            });
-
-            return winner;
-            
-        }
-    });
+    this.winner = null;
 
     this.playersInTheRoom = [];
 
@@ -171,6 +189,7 @@ Game.prototype.newGame = function(){
 Game.prototype.clear = function(){
     this.players = [];
     this.foods = [];
+    this.winner = null;
     this.engine.clear();
 }
 
@@ -215,7 +234,7 @@ Game.prototype.resizeCanvas = function(){
     const resizeCanvas = () => {
        
         let winSize = [window.innerWidth, window.innerHeight]; // X, Y
-        let tileSize = [0, 0].map((val, i) => winSize[i] / gameProps.tiles[i]);
+        let tileSize = [0, 0].map((_, i) => winSize[i] / gameProps.tiles[i]);
         this.tileSize = tileSize[tileSize[0] > tileSize[1] ? 1 : 0];
 
         chooseSnake_snakeSize();
@@ -271,20 +290,11 @@ Game.prototype.socketEvents = function(){
 
     });
 
-    game.socket.on('game over', () =>{
+    game.socket.on('game over', winner => {
 
+        this.winner = winner;
+        this.status = 'game-over';
         this.interface.gameOver();
-
-        // this.socket.off('game over');
-
-        // var winner = game.winner
-        //     ? `<span style="color: ${gameProps.snakes.colors[game.winner.color]}">${game.winner.nickname}</span>`
-        //     : 'Nobody';
-
-        // this.dialogBox.alert('Game over', `${winner} is the winner!`, () => {
-        //     game.status = 'toStart';
-        //     this.open('multiplayer-local-menu');
-        // });
 
     });
 
@@ -293,7 +303,7 @@ Game.prototype.socketEvents = function(){
         this.interface.listPlayersInTheRoom();
     });
 
-    this.socket.on('prepare multiplayer', arr => {
+    this.socket.on('prepare', arr => {
 
         for (let i = arr.length - 1; i >= 0; i--) {
             const player = arr[i];
@@ -414,18 +424,25 @@ function Interface(game){
         $mainMenu = $interface.querySelector('#main-menu'),
         $singlePlayer = $mainMenu.querySelector('#single-player'),
         $multiplayer = $mainMenu.querySelector('#multiplayer'),
+        $multiplayerLocal = $interface.querySelector('#multiplayer-local'),
+
+        $singlePlayerMenu = $interface.querySelector('#single-player-menu'),
+        $singlePlayerSubmit = $singlePlayerMenu.querySelector('.submit'),
+        $singlePlayer_playersQtn = $singlePlayerMenu.querySelector('.input-number'),
+        $backSinglePlayerMenu = $singlePlayerMenu.querySelector('.back'),
 
         $multiplayerMenu = $interface.querySelector('#multiplayer-menu'),
         $multiplayerSubmit = $multiplayerMenu.querySelector('.submit'),
         $player2Name = $multiplayerMenu.querySelector('[name="player_name"]'),
-        $playersQtn = $multiplayerMenu.querySelector('.input-number'),
+        $multiplayer_playersQtn = $multiplayerMenu.querySelector('.input-number'),
+        $backMultiplayerMenu = $multiplayerMenu.querySelector('.back'),
         
-        $multiplayerLocal = $interface.querySelector('#multiplayer-local'),
         $multiplayerLocalMenu = $interface.querySelector('#multiplayer-local-menu'),
         $connectedPlayers = $interface.querySelectorAll('.connected-players ul'),
         $multiplayerLocalMenuSubmit = $multiplayerLocalMenu.querySelector('.submit'),
         $playerCounter = $multiplayerLocalMenu.querySelector('.player-counter span'),
         $address = $multiplayerLocalMenu.querySelector('.address'),
+        $backMultiplayerLocalMenu = $multiplayerLocalMenu.querySelector('.back'),
         
         $gameOver = $interface.querySelector('#game-over'),
         $gameOverText = $gameOver.querySelector('h2 span'),
@@ -434,7 +451,8 @@ function Interface(game){
     this.dialogBox = new DialogBox($interface);
     const snakeChooser = new SnakeChooser($interface);
     new InputNumber();
-    
+
+    this.openModal = () => $modal.classList.remove('closed');
     this.closeModal = () => $modal.classList.add('closed');
     this.open = what => $interface.className = what;
 
@@ -467,11 +485,23 @@ function Interface(game){
 
     this.gameOver = () => {
 
-        $gameOverText.style.color = gameProps.snakes.colors[game.winner.color] || '';
-        $gameOverText.innerText = game.winner.nickname || 'Nobody';
+        if(game.winner){
+            $gameOverText.style.color = gameProps.snakes.colors[game.winner.color];
+            $gameOverText.innerText = game.winner.nickname;
+        }else{
+            $gameOverText.style.color = 'inherit';
+            $gameOverText.innerText = 'Nobody';
+        }
 
         this.open('game-over');
 
+    }
+
+    const gameOverSubmit = open => {
+        game.status = 'toStart';
+        game.clear();
+        this.openModal();
+        this.open(open);
     }
 
     var $welcomeText = $mainMenu.querySelector('#welcome');
@@ -485,9 +515,17 @@ function Interface(game){
         });
     });
 
-    $singlePlayer.addEventListener('click', e => {
-        game.socket.emit('start');
+    $singlePlayer.addEventListener('click', e => 
+        this.open('single-player-menu'));
+
+    $singlePlayerSubmit.addEventListener('click', () => {
+
+        game.socket.emit('prepare single player', $singlePlayer_playersQtn.getAttribute('data-value'));
+        $gameOverSubmit.onclick = () => gameOverSubmit('single-player-menu');
+
     });
+
+    $backSinglePlayerMenu.addEventListener('click', () => this.open('main-menu'));
 
     $submitChooser.addEventListener('click', () => {
 
@@ -519,6 +557,8 @@ function Interface(game){
 
     $multiplayerSubmit.addEventListener('click', () => {
 
+        game.playersInTheRoom = [game.playersInTheRoom[0]];
+
         var colorsInUse = game.colorsInUse;
         if(colorsInUse.includes(snakeChooser.currentColor))
             return this.dialogBox.alert('Denied', 'This color is being used.');
@@ -526,10 +566,14 @@ function Interface(game){
         game.socket.emit('prepare multiplayer', {
             nickname: $player2Name.value,
             color: snakeChooser.currentColor,
-            nPlayers: $playersQtn.getAttribute('data-value')
+            nPlayers: $multiplayer_playersQtn.getAttribute('data-value')
         });
 
+        $gameOverSubmit.onclick = () => gameOverSubmit('multiplayer-menu');
+
     });
+
+    $backMultiplayerMenu.addEventListener('click', () => this.open('main-menu'));
 
     $multiplayerLocal.addEventListener('click', () => {
 
@@ -545,7 +589,19 @@ function Interface(game){
 
     $multiplayerLocalMenuSubmit.addEventListener('click', () => {
         
-        game.socket.emit('start');
+        $multiplayerLocalMenuSubmit.setAttribute('disabled', true);
+        game.socket.emit('ready');
+        $gameOverSubmit.onclick = () => {
+            $multiplayerLocalMenuSubmit.removeAttribute('disabled');
+            gameOverSubmit('multiplayer-local-menu');
+        }
+
+    });
+
+    $backMultiplayerLocalMenu.addEventListener('click', () => {
+
+        game.socket.emit('multiplayer-local-deny');
+        this.open('main-menu');
 
     });
 
@@ -667,35 +723,6 @@ function SnakeControls(snake, game){
         }
     }
 
-}
-Array.prototype.isEqual = function(arr){
-
-    return JSON.stringify(this) === JSON.stringify(arr);
-
-}
-
-Array.prototype.sumWith = function(...arrays){
-    var arrays = [this, ...arrays].sort((a, b) => b.length - a.length), // Order by DESC
-        newArray = [...arrays[0]]; // Largest array of the list
-
-    for (let i = 1, arrLeng = arrays.length; i < arrLeng; i++) {
-        const array = arrays[i];
-        for (let j = 0, itemLeng = array.length; j < itemLeng; j++) {
-            const item = array[j];
-            newArray[j] += item;
-        }
-    }
-
-    return newArray;
-}
-
-Array.prototype.lastItem = function(){
-
-    return this[this.length - 1];
-
-}
-Object.prototype.merge = function(object){
-    for (const key in object) this[key] = object[key];
 }
 function DialogBox($interface){
 

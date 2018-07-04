@@ -64,6 +64,40 @@
                     }
                 }
             }
+
+            .back{
+                display: block;
+                color: $green-004;
+                font-size: .9rem;
+                text-decoration: none;
+                margin-bottom: 10px;
+
+                &::before{
+                    content: '';
+                    display: inline-block;
+                    border: 5px transparent solid;
+                    border-right-color: $green-004;
+                    margin-right: 10px;
+                }
+
+                &:hover{
+                    &::before{
+                        animation: 1s ease infinite translateX;
+                    }
+                }
+
+                @keyframes translateX{
+                    0%{
+                        transform: translateX(0);
+                    }
+                    50%{
+                        transform: translate(5px);
+                    }
+                    100%{
+                        transform: translateX(0);
+                    }
+                }
+            }
         }
     }
 }

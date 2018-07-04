@@ -22,17 +22,17 @@ function Engine(game){
 
     this.run = () => {
 
-        let engine = this,
-            start = performance.now();
+        // let engine = this,
+        //     start = performance.now();
 
-        requestAnimationFrame(function run(timestamp){
+        requestAnimationFrame(function run(){
 
-            let deltaTime = (timestamp - start) / 1000;
-            deltaTime = Math.min(1, deltaTime);
+            // let deltaTime = (timestamp - start) / 1000;
+            // deltaTime = Math.min(1, deltaTime);
 
             draw();
 
-            if(deltaTime >= 1) return engine.run();
+            // if(deltaTime >= 1) return engine.run();
             requestAnimationFrame(run);
 
         }.bind(this));

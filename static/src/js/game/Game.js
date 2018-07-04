@@ -36,18 +36,7 @@ function Game(canvas){
         }
     });
 
-    Object.defineProperty(this, 'winner', {
-        get: () => {
-
-            var winner;
-            this.for('players', player => {
-                if(!killed) winner = player;
-            });
-
-            return winner;
-            
-        }
-    });
+    this.winner = null;
 
     this.playersInTheRoom = [];
 
@@ -85,6 +74,7 @@ Game.prototype.newGame = function(){
 Game.prototype.clear = function(){
     this.players = [];
     this.foods = [];
+    this.winner = null;
     this.engine.clear();
 }
 
@@ -129,7 +119,7 @@ Game.prototype.resizeCanvas = function(){
     const resizeCanvas = () => {
        
         let winSize = [window.innerWidth, window.innerHeight]; // X, Y
-        let tileSize = [0, 0].map((val, i) => winSize[i] / gameProps.tiles[i]);
+        let tileSize = [0, 0].map((_, i) => winSize[i] / gameProps.tiles[i]);
         this.tileSize = tileSize[tileSize[0] > tileSize[1] ? 1 : 0];
 
         chooseSnake_snakeSize();
@@ -185,20 +175,11 @@ Game.prototype.socketEvents = function(){
 
     });
 
-    game.socket.on('game over', () =>{
+    game.socket.on('game over', winner => {
 
+        this.winner = winner;
+        this.status = 'game-over';
         this.interface.gameOver();
-
-        // this.socket.off('game over');
-
-        // var winner = game.winner
-        //     ? `<span style="color: ${gameProps.snakes.colors[game.winner.color]}">${game.winner.nickname}</span>`
-        //     : 'Nobody';
-
-        // this.dialogBox.alert('Game over', `${winner} is the winner!`, () => {
-        //     game.status = 'toStart';
-        //     this.open('multiplayer-local-menu');
-        // });
 
     });
 
@@ -207,7 +188,7 @@ Game.prototype.socketEvents = function(){
         this.interface.listPlayersInTheRoom();
     });
 
-    this.socket.on('prepare multiplayer', arr => {
+    this.socket.on('prepare', arr => {
 
         for (let i = arr.length - 1; i >= 0; i--) {
             const player = arr[i];

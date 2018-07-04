@@ -64,15 +64,26 @@ io.on('connection', socket => {
 
         socket.on('moveTo', data => game.event.emit('moveTo', data));
 
+        socket.on('prepare single player', nPlayers => {
+
+            if(game.playersInTheRoom.length && game.multiplayerLocalAllow)
+                return;
+
+            game.playersInTheRoom = [game.playersInTheRoom[0]];
+            io.emit('prepare', game.createPlayers(nPlayers));
+
+        });
+
         socket.on('prepare multiplayer', data => {
 
             if(game.playersInTheRoom.length && game.multiplayerLocalAllow)
                 return;
 
-            let players = [];
-            let colorsInUse = game.colorsInUse;
+            game.playersInTheRoom = [game.playersInTheRoom[0]];
 
-            if(colorsInUse.includes(data.color)) return;
+            if(game.colorsInUse.includes(data.color)) return;
+
+            let players = [];
 
             let player2 = {
                 id: `${socket.id}[1]`,
@@ -86,33 +97,34 @@ io.on('connection', socket => {
             game.playersInTheRoom.push(player2);
             players.push(player2);
 
-            for (let i = 0; i < data.nPlayers; i++) {
-                
-                let player = {
-                    id: `comp-${i}`,
-                    enhancerId: game.playersInTheRoom.length,
-                    nickname: `Player ${game.playersInTheRoom.length + 1}`,
-                    bodyStart: newBodyStart(game.playersInTheRoom.length),
-                    color: game.generateColor()
-                }
-        
-                game.playersInTheRoom.push(player);
-                players.push(player);
-                
-            }
+            players = [...players, ...game.createPlayers(data.nPlayers)];
 
-            io.emit('prepare multiplayer', players);
+            io.emit('prepare', players);
             
         });
 
         socket.on('multiplayer-local-allow', () => {
 
             game.multiplayerLocalAllow = true;
+            game.readyPlayers = 0;
 
             socket.on('disconnect', () =>
                 game.multiplayerLocalAllow = false);
 
             socket.emit('multiplayer-local-address', `${internalIp.v4.sync()}:${server.address().port}`);
+
+        });
+
+        socket.on('ready', () => {
+
+            game.readyPlayers++;
+
+            if(game.readyPlayers == game.playersInTheRoom.length && game.playersInTheRoom.length > 1){
+                io.emit('start');
+                game.newGame();
+            }
+
+            socket.on('disconnect', () => game.readyPlayers--);
 
         });
     

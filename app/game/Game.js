@@ -8,6 +8,8 @@ function Game(){
 
     this.multiplayerLocalAllow = false;
 
+    this.readyPlayers = 0;
+
     this.engine.run();
 
     Object.defineProperty(this, 'colorsInUse', {
@@ -21,12 +23,25 @@ function Game(){
         }
     });
 
+    Object.defineProperty(this, 'winner', {
+        get: () => {
+
+            var winner;
+            this.for('players', player => {
+                if(!player.killed) winner = player;
+            });
+
+            return winner;
+
+        }
+    });
+
     var status = 'toStart';
     Object.defineProperty(this, 'status', {
         get: () => status,
         set: st => {
             if(st == 'over') {
-                io.emit('game over');
+                io.emit('game over', this.winner);
                 this.clear();
             }
             status = st;
@@ -40,6 +55,7 @@ Game.prototype.event = new events.EventEmitter();
 Game.prototype.clear = function(){
     this.players = [];
     this.foods = [];
+    this.readyPlayers = 0;
     this.engine.clear();
 }
 
@@ -95,5 +111,28 @@ Game.prototype.generateColor = function(){
     var color = Math.round(Math.random()*gameProps.snakes.colors.length);
     
     return this.colorsInUse.includes(color) ? this.generateColor() : color;
+
+}
+
+Game.prototype.createPlayers = function(qnt){
+
+    let players = [];
+
+    for (let i = 0; i < qnt; i++) {
+        
+        let player = {
+            id: `comp-${i}`,
+            enhancerId: this.playersInTheRoom.length,
+            nickname: `Player ${this.playersInTheRoom.length + 1}`,
+            bodyStart: newBodyStart(this.playersInTheRoom.length),
+            color: this.generateColor()
+        }
+
+        this.playersInTheRoom.push(player);
+        players.push(player);
+        
+    }
+
+    return players;
 
 }
