@@ -4,8 +4,10 @@ function Game(){
 
     this.engine = new Engine(this);
 
+    this.localhost = false;
     this.mode = 'deathmatch';
 
+    this.roomCreator = null;
     this.multiplayerLocalAllow = false;
 
     this.readyPlayers = 0;
@@ -41,6 +43,9 @@ function Game(){
         get: () => status,
         set: st => {
             if(st == 'over') {
+                if(!this.localhost) game.playersInTheRoom.length = 1;
+                else this.localhost = false;
+
                 io.emit('game over', this.winner);
                 this.clear();
             }
@@ -65,16 +70,8 @@ Game.prototype.newGame = function(){
     
     new GameRules(this);
 
-    this.addPlayers();
     this.addFoods();
-
-    this.for('players', player => {
-        player.newBody();
-    });
-
-    this.for('foods', food => {
-        food.create();
-    });
+    this.addPlayers();
 
     this.status = "playing";
 
@@ -123,6 +120,7 @@ Game.prototype.createPlayers = function(qnt){
         let player = {
             id: `comp-${i}`,
             enhancerId: this.playersInTheRoom.length,
+            AI: true,
             nickname: `Player ${this.playersInTheRoom.length + 1}`,
             bodyStart: newBodyStart(this.playersInTheRoom.length),
             color: this.generateColor()

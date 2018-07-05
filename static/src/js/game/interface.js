@@ -106,7 +106,7 @@ function Interface(game){
 
     $singlePlayerSubmit.addEventListener('click', () => {
 
-        game.socket.emit('prepare single player', $singlePlayer_playersQtn.getAttribute('data-value'));
+        game.socket.emit('prepare single-player', $singlePlayer_playersQtn.getAttribute('data-value'));
         $gameOverSubmit.onclick = () => gameOverSubmit('single-player-menu');
 
     });
@@ -119,7 +119,7 @@ function Interface(game){
         if(colorsInUse.includes(snakeChooser.currentColor))
             return this.dialogBox.alert('Denied', 'This color is being used.');
 
-        game.socket.emit('changeColor', snakeChooser.currentColor);
+        game.socket.emit('change color', snakeChooser.currentColor);
 
         if(game.multiplayerLocalAllow){
             this.listPlayersInTheRoom();
@@ -164,7 +164,8 @@ function Interface(game){
     $multiplayerLocal.addEventListener('click', () => {
 
         game.multiplayerLocalAllow = true;
-        game.socket.emit('multiplayer-local-allow');
+        game.playersInTheRoom.length = 1;
+        game.socket.emit('multiplayer-local allow');
 
     });
 
@@ -186,7 +187,8 @@ function Interface(game){
 
     $backMultiplayerLocalMenu.addEventListener('click', () => {
 
-        game.socket.emit('multiplayer-local-deny');
+        game.playersInTheRoom = [game.playersInTheRoom[0]];
+        game.socket.emit('multiplayer-local deny');
         this.open('main-menu');
 
     });

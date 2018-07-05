@@ -2,9 +2,11 @@
 
 io.on('connection', socket => {
 
+    if(!game.roomCreator) game.roomCreator = socket.id;
+
     socket.on('login', data => {
 
-        if(game.playersInTheRoom.length && !game.multiplayerLocalAllow)
+        if(game.roomCreator != socket.id && !game.multiplayerLocalAllow)
             return socket.emit('multiplayer disabled');
 
         let enhancerId = game.playersInTheRoom.length;
@@ -28,24 +30,24 @@ io.on('connection', socket => {
         socket.broadcast.emit('newPlayer', player);
 
         socket.on('disconnect', () => {
-            if(io.engine.clientsCount == 0){
+            if(game.roomCreator == socket.id){
                 game.playersInTheRoom = [];
                 game.clear();
+                io.emit('multiplayer-local-deny');
             }else{
                 delete game.playersInTheRoom[enhancerId];
                 game.playersInTheRoom = game.playersInTheRoom.filter(Boolean);
-                io.emit('delPlayer', enhancerId);
+                io.emit('delete player', enhancerId);
             }
         });
 
-        socket.on('changeColor', color => {
+        socket.on('change color', color => {
 
             let colorsInUse = game.colorsInUse;
             if(colorsInUse.includes(color)) return;
 
             if(color >= 0 && color < gameProps.snakes.colors.length){
                 player.color = color;
-                io.emit(`snakeUpdate-${socket.id}`, {color: color});
                 io.emit(`playersInTheRoom update`, {i: enhancerId, color: color});
             }
 
@@ -54,7 +56,7 @@ io.on('connection', socket => {
         socket.on('start', () => {
 
             if(game.playersInTheRoom.length && !game.multiplayerLocalAllow){
-                if(socket.id != game.playersInTheRoom[0].id) return;
+                if(game.roomCreator != socket.id) return;
             }
 
             io.emit('start');
@@ -64,13 +66,12 @@ io.on('connection', socket => {
 
         socket.on('moveTo', data => game.event.emit('moveTo', data));
 
-        socket.on('prepare single player', nPlayers => {
+        socket.on('prepare single-player', nPlayers => {
 
             if(game.playersInTheRoom.length && game.multiplayerLocalAllow)
                 return;
 
-            game.playersInTheRoom = [game.playersInTheRoom[0]];
-            io.emit('prepare', game.createPlayers(nPlayers));
+            io.emit('prepare game', game.createPlayers(nPlayers));
 
         });
 
@@ -78,8 +79,6 @@ io.on('connection', socket => {
 
             if(game.playersInTheRoom.length && game.multiplayerLocalAllow)
                 return;
-
-            game.playersInTheRoom = [game.playersInTheRoom[0]];
 
             if(game.colorsInUse.includes(data.color)) return;
 
@@ -99,11 +98,13 @@ io.on('connection', socket => {
 
             players = [...players, ...game.createPlayers(data.nPlayers)];
 
-            io.emit('prepare', players);
+            io.emit('prepare game', players);
             
         });
 
-        socket.on('multiplayer-local-allow', () => {
+        socket.on('multiplayer-local allow', () => {
+
+            if(game.roomCreator != socket.id) return;
 
             game.multiplayerLocalAllow = true;
             game.readyPlayers = 0;
@@ -111,7 +112,17 @@ io.on('connection', socket => {
             socket.on('disconnect', () =>
                 game.multiplayerLocalAllow = false);
 
-            socket.emit('multiplayer-local-address', `${internalIp.v4.sync()}:${server.address().port}`);
+            socket.emit('multiplayer-local address', `${internalIp.v4.sync()}:${server.address().port}`);
+
+        });
+
+        socket.on('multiplayer-local deny', () => {
+
+            if(game.roomCreator != socket.id) return;
+
+            game.multiplayerLocalAllow = false;
+
+            socket.broadcast.emit('multiplayer-local deny');
 
         });
 
@@ -120,6 +131,7 @@ io.on('connection', socket => {
             game.readyPlayers++;
 
             if(game.readyPlayers == game.playersInTheRoom.length && game.playersInTheRoom.length > 1){
+                game.localhost = true;
                 io.emit('start');
                 game.newGame();
             }
@@ -127,6 +139,8 @@ io.on('connection', socket => {
             socket.on('disconnect', () => game.readyPlayers--);
 
         });
+
+        socket.on('logout', () => socket.disconnect());
     
     });
 

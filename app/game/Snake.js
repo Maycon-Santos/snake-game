@@ -9,6 +9,8 @@ function Snake(game, props){
 
     this.bodyStart = [0, 0];
 
+    this.AI = false;
+
     this.merge(props);
 
     const directionMap = {
@@ -23,7 +25,7 @@ function Snake(game, props){
         get: () => direction,
         set: (to) => {
 
-            let directions = Object.keys(directionMap), // X, Y
+            let directions = Object.keys(directionMap),
                 oldDirection = direction,
                 reverse = gameProps.snakes.reverse;
 
@@ -77,6 +79,10 @@ function Snake(game, props){
     game.engine.add(this);
     const snakeControls = new SnakeControls(this, game);
 
+    this.newBody();
+
+    if(this.AI) this.AI = new snakeAI(game, this);
+
     var progressMove = 0;
     const movement = (deltaTime) => {
 
@@ -85,7 +91,8 @@ function Snake(game, props){
     
         if(~~progress <= ~~progressMove) return;
 
-        snakeControls.currentMovement();
+        if(this.AI) this.AI.movement();
+        else snakeControls.currentMovement();
 
         progressMove = progress != speed ? progress : 0;
         
@@ -108,6 +115,20 @@ function Snake(game, props){
         else if(nextPos[axis] < 0) nextPos[axis] = gameProps.tiles[axis] - 1;
 
         return nextPos;
+
+    }
+
+    this.predictMovement = moveTo => {
+
+        var directionNow = this.direction;
+
+        this.direction = moveTo;
+
+        var _nextPos = nextPos();
+
+        this.direction = directionNow;
+
+        return _nextPos;
 
     }
 

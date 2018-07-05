@@ -19,6 +19,10 @@ Array.prototype.sumWith = function(...arrays){
     return newArray;
 }
 
+Array.prototype.sumAll = function(){
+    return this.reduce((total, sum) => total + sum, 0);
+}
+
 Array.prototype.lastItem = function(){
 
     return this[this.length - 1];

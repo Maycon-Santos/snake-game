@@ -1,32 +1,3 @@
-Array.prototype.isEqual = function(arr){
-
-    return JSON.stringify(this) === JSON.stringify(arr);
-
-}
-
-Array.prototype.sumWith = function(...arrays){
-    var arrays = [this, ...arrays].sort((a, b) => b.length - a.length), // Order by DESC
-        newArray = [...arrays[0]]; // Largest array of the list
-
-    for (let i = 1, arrLeng = arrays.length; i < arrLeng; i++) {
-        const array = arrays[i];
-        for (let j = 0, itemLeng = array.length; j < itemLeng; j++) {
-            const item = array[j];
-            newArray[j] += item;
-        }
-    }
-
-    return newArray;
-}
-
-Array.prototype.lastItem = function(){
-
-    return this[this.length - 1];
-
-}
-Object.prototype.merge = function(object){
-    for (const key in object) this[key] = object[key];
-}
 function Engine(game){
 
     var canvas = game.ctx.canvas;
@@ -303,7 +274,7 @@ Game.prototype.socketEvents = function(){
         this.interface.listPlayersInTheRoom();
     });
 
-    this.socket.on('prepare', arr => {
+    this.socket.on('prepare game', arr => {
 
         for (let i = arr.length - 1; i >= 0; i--) {
             const player = arr[i];
@@ -321,7 +292,7 @@ Game.prototype.socketEvents = function(){
         game.interface.listPlayersInTheRoom();      
     });
 
-    this.socket.on('delPlayer', i => {
+    this.socket.on('delete player', i => {
         delete this.playersInTheRoom[i];
         this.playersInTheRoom = this.playersInTheRoom.filter(Boolean);
         this.interface.listPlayersInTheRoom();
@@ -336,7 +307,19 @@ Game.prototype.socketEvents = function(){
 
     });
 
-    this.socket.on('multiplayer-local-address', this.interface.openMultiplayerLocal);
+    this.socket.on('multiplayer-local address', this.interface.openMultiplayerLocal);
+
+    this.socket.on('multiplayer-local deny', () => {
+
+        this.playersInTheRoom = [];
+        this.clear();
+        this.interface.open('login');
+
+        this.socket.emit('logout');
+
+        this.interface.dialogBox.alert('Danied', 'Local multiplayer disabled.', () => location.reload());
+
+    });
 
 }
 var gameProps = {}
@@ -520,7 +503,7 @@ function Interface(game){
 
     $singlePlayerSubmit.addEventListener('click', () => {
 
-        game.socket.emit('prepare single player', $singlePlayer_playersQtn.getAttribute('data-value'));
+        game.socket.emit('prepare single-player', $singlePlayer_playersQtn.getAttribute('data-value'));
         $gameOverSubmit.onclick = () => gameOverSubmit('single-player-menu');
 
     });
@@ -533,7 +516,7 @@ function Interface(game){
         if(colorsInUse.includes(snakeChooser.currentColor))
             return this.dialogBox.alert('Denied', 'This color is being used.');
 
-        game.socket.emit('changeColor', snakeChooser.currentColor);
+        game.socket.emit('change color', snakeChooser.currentColor);
 
         if(game.multiplayerLocalAllow){
             this.listPlayersInTheRoom();
@@ -578,7 +561,8 @@ function Interface(game){
     $multiplayerLocal.addEventListener('click', () => {
 
         game.multiplayerLocalAllow = true;
-        game.socket.emit('multiplayer-local-allow');
+        game.playersInTheRoom.length = 1;
+        game.socket.emit('multiplayer-local allow');
 
     });
 
@@ -600,7 +584,8 @@ function Interface(game){
 
     $backMultiplayerLocalMenu.addEventListener('click', () => {
 
-        game.socket.emit('multiplayer-local-deny');
+        game.playersInTheRoom = [game.playersInTheRoom[0]];
+        game.socket.emit('multiplayer-local deny');
         this.open('main-menu');
 
     });
@@ -723,6 +708,35 @@ function SnakeControls(snake, game){
         }
     }
 
+}
+Array.prototype.isEqual = function(arr){
+
+    return JSON.stringify(this) === JSON.stringify(arr);
+
+}
+
+Array.prototype.sumWith = function(...arrays){
+    var arrays = [this, ...arrays].sort((a, b) => b.length - a.length), // Order by DESC
+        newArray = [...arrays[0]]; // Largest array of the list
+
+    for (let i = 1, arrLeng = arrays.length; i < arrLeng; i++) {
+        const array = arrays[i];
+        for (let j = 0, itemLeng = array.length; j < itemLeng; j++) {
+            const item = array[j];
+            newArray[j] += item;
+        }
+    }
+
+    return newArray;
+}
+
+Array.prototype.lastItem = function(){
+
+    return this[this.length - 1];
+
+}
+Object.prototype.merge = function(object){
+    for (const key in object) this[key] = object[key];
 }
 function DialogBox($interface){
 

@@ -27,4 +27,6 @@ function Food(game, id){
         io.emit(`foodUpdate-${id}`, {position: this.position, type: this.type});
     }
 
+    this.create();
+
 }

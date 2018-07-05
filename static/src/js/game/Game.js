@@ -188,7 +188,7 @@ Game.prototype.socketEvents = function(){
         this.interface.listPlayersInTheRoom();
     });
 
-    this.socket.on('prepare', arr => {
+    this.socket.on('prepare game', arr => {
 
         for (let i = arr.length - 1; i >= 0; i--) {
             const player = arr[i];
@@ -206,7 +206,7 @@ Game.prototype.socketEvents = function(){
         game.interface.listPlayersInTheRoom();      
     });
 
-    this.socket.on('delPlayer', i => {
+    this.socket.on('delete player', i => {
         delete this.playersInTheRoom[i];
         this.playersInTheRoom = this.playersInTheRoom.filter(Boolean);
         this.interface.listPlayersInTheRoom();
@@ -221,6 +221,18 @@ Game.prototype.socketEvents = function(){
 
     });
 
-    this.socket.on('multiplayer-local-address', this.interface.openMultiplayerLocal);
+    this.socket.on('multiplayer-local address', this.interface.openMultiplayerLocal);
+
+    this.socket.on('multiplayer-local deny', () => {
+
+        this.playersInTheRoom = [];
+        this.clear();
+        this.interface.open('login');
+
+        this.socket.emit('logout');
+
+        this.interface.dialogBox.alert('Danied', 'Local multiplayer disabled.', () => location.reload());
+
+    });
 
 }

@@ -19,6 +19,10 @@ Array.prototype.sumWith = function(...arrays){
     return newArray;
 }
 
+Array.prototype.sumAll = function(){
+    return this.reduce((total, sum) => total + sum, 0);
+}
+
 Array.prototype.lastItem = function(){
 
     return this[this.length - 1];
@@ -151,6 +155,8 @@ function Food(game, id){
         io.emit(`foodUpdate-${id}`, {position: this.position, type: this.type});
     }
 
+    this.create();
+
 }
 function Game(){
 
@@ -158,8 +164,10 @@ function Game(){
 
     this.engine = new Engine(this);
 
+    this.localhost = false;
     this.mode = 'deathmatch';
 
+    this.roomCreator = null;
     this.multiplayerLocalAllow = false;
 
     this.readyPlayers = 0;
@@ -195,6 +203,9 @@ function Game(){
         get: () => status,
         set: st => {
             if(st == 'over') {
+                if(!this.localhost) game.playersInTheRoom.length = 1;
+                else this.localhost = false;
+
                 io.emit('game over', this.winner);
                 this.clear();
             }
@@ -219,16 +230,8 @@ Game.prototype.newGame = function(){
     
     new GameRules(this);
 
-    this.addPlayers();
     this.addFoods();
-
-    this.for('players', player => {
-        player.newBody();
-    });
-
-    this.for('foods', food => {
-        food.create();
-    });
+    this.addPlayers();
 
     this.status = "playing";
 
@@ -277,6 +280,7 @@ Game.prototype.createPlayers = function(qnt){
         let player = {
             id: `comp-${i}`,
             enhancerId: this.playersInTheRoom.length,
+            AI: true,
             nickname: `Player ${this.playersInTheRoom.length + 1}`,
             bodyStart: newBodyStart(this.playersInTheRoom.length),
             color: this.generateColor()
@@ -385,6 +389,7 @@ function GameRules(game){
                 if(player.head.isEqual(food.position)){
                     player.increase++;
                     food.create();
+                    game.event.emit('foodEated', food.id);
                 }
             });
         })
@@ -426,6 +431,8 @@ function Snake(game, props){
 
     this.bodyStart = [0, 0];
 
+    this.AI = false;
+
     this.merge(props);
 
     const directionMap = {
@@ -440,7 +447,7 @@ function Snake(game, props){
         get: () => direction,
         set: (to) => {
 
-            let directions = Object.keys(directionMap), // X, Y
+            let directions = Object.keys(directionMap),
                 oldDirection = direction,
                 reverse = gameProps.snakes.reverse;
 
@@ -494,6 +501,10 @@ function Snake(game, props){
     game.engine.add(this);
     const snakeControls = new SnakeControls(this, game);
 
+    this.newBody();
+
+    if(this.AI) this.AI = new snakeAI(game, this);
+
     var progressMove = 0;
     const movement = (deltaTime) => {
 
@@ -502,7 +513,8 @@ function Snake(game, props){
     
         if(~~progress <= ~~progressMove) return;
 
-        snakeControls.currentMovement();
+        if(this.AI) this.AI.movement();
+        else snakeControls.currentMovement();
 
         progressMove = progress != speed ? progress : 0;
         
@@ -525,6 +537,20 @@ function Snake(game, props){
         else if(nextPos[axis] < 0) nextPos[axis] = gameProps.tiles[axis] - 1;
 
         return nextPos;
+
+    }
+
+    this.predictMovement = moveTo => {
+
+        var directionNow = this.direction;
+
+        this.direction = moveTo;
+
+        var _nextPos = nextPos();
+
+        this.direction = directionNow;
+
+        return _nextPos;
 
     }
 
@@ -579,6 +605,90 @@ Snake.prototype.newBody = function(){
     this.senUpdate({body: this.body});
 
 }
+function snakeAI(game, snake){
+
+    const selectFood = () => {
+
+        var lastFood, selectedFood;
+
+        game.for('foods', food => {
+
+            if(!lastFood) return selectedFood = lastFood = food;
+
+            let distance = food.position.sumAll() - snake.head.sumAll(),
+                lastFoodDistance = lastFood.position.sumAll() - snake.head.sumAll();
+
+            if(Math.abs(distance) < Math.abs(lastFoodDistance)){
+                selectedFood = food;
+            }
+
+            lastFood = food;
+
+        });
+
+        return selectedFood;
+
+    }
+
+    var food = selectFood();
+
+    game.event.on('foodEated', id => {
+
+        if(food.id == id) food = selectFood();
+
+    });
+
+    this.movement = () => {
+
+        var hazardousAreas = (() => {
+
+            var areas = [];
+
+            game.for('players', (player, id) => {
+
+                var body = [...player.body];
+
+                if(id == snake.enhancerId) body.splice(0, 1);
+
+                areas.push(...body);
+
+            });
+
+            return JSON.stringify(areas);
+
+        })();
+
+        var movements = [['left', 'right'], ['up', 'down']].map((mov, axis) => {
+            if(food.position[axis] < snake.head[axis])
+                return mov[0];
+            else if(food.position[axis] != snake.head[axis])
+                return mov[1];
+            else
+                return null;
+        });
+
+        var axis = Math.round(Math.random()),
+            selectMovement = movements[axis];
+
+        io.emit('teste', [hazardousAreas, JSON.stringify(snake.predictMovement(selectMovement))])
+
+        if(hazardousAreas.includes(JSON.stringify(snake.predictMovement(selectMovement)))){
+
+            ['left', 'right', 'up', 'down'].sort(() => 0.5 - Math.random()).map(direction => {
+
+                if(!hazardousAreas.includes(JSON.stringify(snake.predictMovement(direction))))
+                    selectMovement = direction;
+
+            });
+
+            food = selectFood();
+        }
+
+        if(selectMovement) snake.direction = selectMovement;
+
+    }
+
+}
 function SnakeControls(snake, game){
 
     var rowMovements = [];
@@ -605,9 +715,11 @@ function SnakeControls(snake, game){
 
 io.on('connection', socket => {
 
+    if(!game.roomCreator) game.roomCreator = socket.id;
+
     socket.on('login', data => {
 
-        if(game.playersInTheRoom.length && !game.multiplayerLocalAllow)
+        if(game.roomCreator != socket.id && !game.multiplayerLocalAllow)
             return socket.emit('multiplayer disabled');
 
         let enhancerId = game.playersInTheRoom.length;
@@ -631,24 +743,24 @@ io.on('connection', socket => {
         socket.broadcast.emit('newPlayer', player);
 
         socket.on('disconnect', () => {
-            if(io.engine.clientsCount == 0){
+            if(game.roomCreator == socket.id){
                 game.playersInTheRoom = [];
                 game.clear();
+                io.emit('multiplayer-local-deny');
             }else{
                 delete game.playersInTheRoom[enhancerId];
                 game.playersInTheRoom = game.playersInTheRoom.filter(Boolean);
-                io.emit('delPlayer', enhancerId);
+                io.emit('delete player', enhancerId);
             }
         });
 
-        socket.on('changeColor', color => {
+        socket.on('change color', color => {
 
             let colorsInUse = game.colorsInUse;
             if(colorsInUse.includes(color)) return;
 
             if(color >= 0 && color < gameProps.snakes.colors.length){
                 player.color = color;
-                io.emit(`snakeUpdate-${socket.id}`, {color: color});
                 io.emit(`playersInTheRoom update`, {i: enhancerId, color: color});
             }
 
@@ -657,7 +769,7 @@ io.on('connection', socket => {
         socket.on('start', () => {
 
             if(game.playersInTheRoom.length && !game.multiplayerLocalAllow){
-                if(socket.id != game.playersInTheRoom[0].id) return;
+                if(game.roomCreator != socket.id) return;
             }
 
             io.emit('start');
@@ -667,13 +779,12 @@ io.on('connection', socket => {
 
         socket.on('moveTo', data => game.event.emit('moveTo', data));
 
-        socket.on('prepare single player', nPlayers => {
+        socket.on('prepare single-player', nPlayers => {
 
             if(game.playersInTheRoom.length && game.multiplayerLocalAllow)
                 return;
 
-            game.playersInTheRoom = [game.playersInTheRoom[0]];
-            io.emit('prepare', game.createPlayers(nPlayers));
+            io.emit('prepare game', game.createPlayers(nPlayers));
 
         });
 
@@ -681,8 +792,6 @@ io.on('connection', socket => {
 
             if(game.playersInTheRoom.length && game.multiplayerLocalAllow)
                 return;
-
-            game.playersInTheRoom = [game.playersInTheRoom[0]];
 
             if(game.colorsInUse.includes(data.color)) return;
 
@@ -702,11 +811,13 @@ io.on('connection', socket => {
 
             players = [...players, ...game.createPlayers(data.nPlayers)];
 
-            io.emit('prepare', players);
+            io.emit('prepare game', players);
             
         });
 
-        socket.on('multiplayer-local-allow', () => {
+        socket.on('multiplayer-local allow', () => {
+
+            if(game.roomCreator != socket.id) return;
 
             game.multiplayerLocalAllow = true;
             game.readyPlayers = 0;
@@ -714,7 +825,17 @@ io.on('connection', socket => {
             socket.on('disconnect', () =>
                 game.multiplayerLocalAllow = false);
 
-            socket.emit('multiplayer-local-address', `${internalIp.v4.sync()}:${server.address().port}`);
+            socket.emit('multiplayer-local address', `${internalIp.v4.sync()}:${server.address().port}`);
+
+        });
+
+        socket.on('multiplayer-local deny', () => {
+
+            if(game.roomCreator != socket.id) return;
+
+            game.multiplayerLocalAllow = false;
+
+            socket.broadcast.emit('multiplayer-local deny');
 
         });
 
@@ -723,6 +844,7 @@ io.on('connection', socket => {
             game.readyPlayers++;
 
             if(game.readyPlayers == game.playersInTheRoom.length && game.playersInTheRoom.length > 1){
+                game.localhost = true;
                 io.emit('start');
                 game.newGame();
             }
@@ -730,6 +852,8 @@ io.on('connection', socket => {
             socket.on('disconnect', () => game.readyPlayers--);
 
         });
+
+        socket.on('logout', () => socket.disconnect());
     
     });
 

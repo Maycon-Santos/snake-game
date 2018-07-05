@@ -42,6 +42,7 @@ function GameRules(game){
                 if(player.head.isEqual(food.position)){
                     player.increase++;
                     food.create();
+                    game.event.emit('foodEated', food.id);
                 }
             });
         })
