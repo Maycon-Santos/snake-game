@@ -121,7 +121,7 @@ Game.prototype.createPlayers = function(qnt){
             id: `comp-${i}`,
             enhancerId: this.playersInTheRoom.length,
             AI: true,
-            nickname: `Player ${this.playersInTheRoom.length + 1}`,
+            nickname: `Computer ${this.playersInTheRoom.length + 1}`,
             bodyStart: newBodyStart(this.playersInTheRoom.length),
             color: this.generateColor()
         }
@@ -130,6 +130,8 @@ Game.prototype.createPlayers = function(qnt){
         players.push(player);
         
     }
+
+    io.emit('teste', this.playersInTheRoom);
 
     return players;
 

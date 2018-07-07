@@ -190,11 +190,7 @@ Game.prototype.socketEvents = function(){
 
     this.socket.on('prepare game', arr => {
 
-        for (let i = arr.length - 1; i >= 0; i--) {
-            const player = arr[i];
-            this.playersInTheRoom.push(player);
-        }
-
+        this.playersInTheRoom.push(...arr);
         this.socket.emit('start');
 
     });

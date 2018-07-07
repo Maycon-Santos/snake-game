@@ -72,6 +72,7 @@ function Interface(game){
     this.gameOver = () => {
 
         if(game.winner){
+            console.log(gameProps.snakes.colors, game.winner.color);
             $gameOverText.style.color = gameProps.snakes.colors[game.winner.color];
             $gameOverText.innerText = game.winner.nickname;
         }else{
@@ -106,6 +107,7 @@ function Interface(game){
 
     $singlePlayerSubmit.addEventListener('click', () => {
 
+        game.playersInTheRoom.length = 1;
         game.socket.emit('prepare single-player', $singlePlayer_playersQtn.getAttribute('data-value'));
         $gameOverSubmit.onclick = () => gameOverSubmit('single-player-menu');
 
@@ -149,6 +151,7 @@ function Interface(game){
         if(colorsInUse.includes(snakeChooser.currentColor))
             return this.dialogBox.alert('Denied', 'This color is being used.');
 
+        game.playersInTheRoom.length = 1;
         game.socket.emit('prepare multiplayer', {
             nickname: $player2Name.value,
             color: snakeChooser.currentColor,
