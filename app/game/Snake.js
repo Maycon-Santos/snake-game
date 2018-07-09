@@ -73,6 +73,30 @@ function Snake(game, props){
         }
     });
 
+    Object.defineProperty(this, 'bodyVertices', {
+        get: () => {
+
+            var bodyWithVetexes = [[this.body[0]]],
+                prevPos = this.body[0];
+
+            for(let i = 1, L = this.body.length; i < L; i++){
+                const bodyFragment = this.body[i];
+
+                if(bodyFragment[0] != prevPos[0] && bodyFragment[1] != prevPos[1]){
+                    bodyWithVetexes.push([]);
+                }
+
+                bodyWithVetexes.lastItem().push(bodyFragment);
+
+                prevPos = bodyFragment;
+
+            }
+
+            return bodyWithVetexes;
+
+        }
+    });
+
     this.senUpdate = update =>
         game.engine.sendUpdate('players', this.enhancerId, update);
 
@@ -103,13 +127,13 @@ function Snake(game, props){
         
     }
 
-    const nextPos = () => {
+    const nextPos = (steps = 1) => {
 
         let direction = directionMap[this.direction],
             axis = Math.abs(direction[1]),
             nextPos = [...this.body[0]];
 
-        nextPos[axis] += direction[axis];
+        nextPos[axis] += direction[axis] * steps;
 
         if(nextPos[axis] >= gameProps.tiles[axis]) nextPos[axis] = 0;
         else if(nextPos[axis] < 0) nextPos[axis] = gameProps.tiles[axis] - 1;
@@ -118,13 +142,13 @@ function Snake(game, props){
 
     }
 
-    this.predictMovement = moveTo => {
+    this.predictMovement = (direction, steps = 1) => {
 
         var directionNow = this.direction;
 
-        this.direction = moveTo;
+        this.direction = direction;
 
-        var _nextPos = nextPos();
+        var _nextPos = nextPos(steps);
 
         this.direction = directionNow;
 

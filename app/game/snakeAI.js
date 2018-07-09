@@ -1,5 +1,8 @@
 function snakeAI(game, snake){
 
+    var lockDirection = 0,
+        movements = ['left', 'right', 'up', 'down'];
+
     const selectFood = () => {
 
         var lastFood, selectedFood;
@@ -47,11 +50,11 @@ function snakeAI(game, snake){
 
             });
 
-            return JSON.stringify(areas);
+            return areas;
 
         })();
 
-        var movements = [['left', 'right'], ['up', 'down']].map((mov, axis) => {
+        var movesToGetFood = [['left', 'right'], ['up', 'down']].map((mov, axis) => {
             if(food.position[axis] < snake.head[axis])
                 return mov[0];
             else if(food.position[axis] != snake.head[axis])
@@ -61,21 +64,53 @@ function snakeAI(game, snake){
         });
 
         var axis = Math.round(Math.random()),
-            selectMovement = movements[axis];
+            selectMovement = movesToGetFood[axis];
 
-        //io.emit('teste', [hazardousAreas, JSON.stringify(snake.predictMovement(selectMovement))])
+        if(hazardousAreas.includesArr(snake.predictMovement(selectMovement))){
 
-        if(hazardousAreas.includes(JSON.stringify(snake.predictMovement(selectMovement)))){
+            [...movements].shuffle().map(direction => {
 
-            ['left', 'right', 'up', 'down'].sort(() => 0.5 - Math.random()).map(direction => {
-
-                if(!hazardousAreas.includes(JSON.stringify(snake.predictMovement(direction))))
+                if(!hazardousAreas.includesArr(snake.predictMovement(direction))){
                     selectMovement = direction;
+                }
 
             });
 
             food = selectFood();
+
         }
+
+        io.emit('teste', snake.bodyVertices);
+
+        /*
+            NÃO TA FUNCIONANDO
+
+            Já tenho o corpo da cobrinha separada em vértices
+            Próximo passo: Identificar o vértice que está ao lado dela e evitar que ela vá para essa direção
+            Obs: Não deve ser regra absoluta, se não houver saída ela vai pra esse caminho mesmo
+        */
+
+        // for (let i = 0; i < 2; i++) {
+
+        //     let sumAxis = Math.round(movements.indexOf(selectMovement) / 3) * 2;
+                
+        //     if((snake.predictMovement(selectMovement)[i] + 4 == snake.body[2][i]
+        //     || snake.predictMovement(selectMovement)[i] - 4 == snake.body[2][i])){
+
+        //         let _movements = [...movements];
+        //         delete _movements[_movements.indexOf(selectMovement)];
+
+        //         [..._movements].shuffle().map(direction => {
+
+        //             if(!hazardousAreas.includesArr(snake.predictMovement(direction))){
+        //                 selectMovement = direction;
+        //             }
+    
+        //         });
+
+        //     }
+            
+        // }
 
         if(selectMovement) snake.direction = selectMovement;
 
