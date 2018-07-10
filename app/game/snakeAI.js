@@ -1,11 +1,10 @@
 function snakeAI(game, snake){
 
-    var lockDirection = 0,
-        movements = ['left', 'right', 'up', 'down'];
+    var lockDirection = 0;
 
     const selectFood = () => {
 
-        var lastFood, selectedFood;
+        /* var lastFood, selectedFood;
 
         game.for('foods', food => {
 
@@ -22,8 +21,15 @@ function snakeAI(game, snake){
 
         });
 
-        return selectedFood;
+        return selectedFood; */
 
+        // ============================================
+
+        let foods = game.foods,
+            selectedFood = foods[Math.round(Math.random() * (foods.length - 1))];
+
+        return selectedFood;
+        
     }
 
     var food = selectFood();
@@ -34,85 +40,110 @@ function snakeAI(game, snake){
 
     });
 
-    this.movement = () => {
+    Object.defineProperty(this, 'hazardousAreas', {
+        get: () => {
 
-        var hazardousAreas = (() => {
+            var areas = [],
+                myHead = snake.head;
 
-            var areas = [];
+            game.for('players', player => {
 
-            game.for('players', (player, id) => {
+                if(player.killed || player.enhancerId == snake.enhancerId) return;
 
-                var body = [...player.body];
+                for(let i = 0, L = player.body.length; i < L; i++){
+                    const bodyFragment = player.body[i];
 
-                if(id == snake.enhancerId) body.splice(0, 1);
+                    for(let axis = 0, L2 = bodyFragment.length; axis < L2; axis++){
 
-                areas.push(...body);
+                        if(myHead[axis] == bodyFragment[axis]){
+
+                            let otherAxis = Math.abs(axis - 1),
+                                distance = myHead[otherAxis] - bodyFragment[otherAxis],
+                                distanceABS = Math.abs(distance);
+
+                            if(distanceABS >= 0 && distanceABS <= 5){
+
+                                let direction;
+
+                                if(myHead[otherAxis] < bodyFragment[otherAxis]) direction = snake.directionMap[1 * (otherAxis + 1)];
+                                else direction = snake.directionMap[-1 * (otherAxis + 1)];
+
+                                areas.push(direction);
+
+                            }
+                            
+                        }
+
+                    }
+
+                }
 
             });
 
             return areas;
 
-        })();
+        }
+    });
 
-        var movesToGetFood = [['left', 'right'], ['up', 'down']].map((mov, axis) => {
-            if(food.position[axis] < snake.head[axis])
-                return mov[0];
-            else if(food.position[axis] != snake.head[axis])
-                return mov[1];
-            else
-                return null;
-        });
+    Object.defineProperty(this, 'movementsByPriority', {
+        get: () => {
 
-        var axis = Math.round(Math.random()),
-            selectMovement = movesToGetFood[axis];
+            let movements = ['left', 'right', 'up', 'down'],
+                movementsByPriority = [],
+                head = snake.head,
+                hazardousAreas = this.hazardousAreas;
 
-        if(hazardousAreas.includesArr(snake.predictMovement(selectMovement))){
+            food.position.map((pos, axis) => {
 
-            [...movements].shuffle().map(direction => {
+                let movIndex = axis;
 
-                if(!hazardousAreas.includesArr(snake.predictMovement(direction))){
-                    selectMovement = direction;
-                }
+                if(pos > head[axis]) movIndex++;
+
+                let movement = movements.splice(movIndex, 1)[0];
+
+
+
+                if(hazardousAreas.includes(movement) || pos == head[axis])
+                    movements.push(movement);
+                else
+                    movementsByPriority.push(movement);
 
             });
 
-            food = selectFood();
+            let snakeDirection = snake.direction;
+
+            if((snakeDirection == 'right' && movementsByPriority[0] == 'left')
+               || (snakeDirection == 'left' && movementsByPriority[0] == 'right')
+               || (snakeDirection == 'up' && movementsByPriority[0] == 'down')
+               || (snakeDirection == 'down' && movementsByPriority[0] == 'up'))
+                    movementsByPriority.reverse();
+
+            return [...movementsByPriority, ...movements.shuffle()];
+
+        }
+    });
+
+    this.movement = () => {
+
+        let movements = this.movementsByPriority,
+            hazardousAreas = this.hazardousAreas,
+            verticesDirections = snake.verticesDirections;
+
+        let selectedMovement;
+
+        for(let i = 0, L = movements.length; i < L; i++){
+            const movement = movements[i];
+
+            if(!movement) continue;
+            
+            if(!hazardousAreas.includes(movement) && !verticesDirections.includes(movement)){
+                selectedMovement = movements[i];
+                break;
+            }
 
         }
 
-        io.emit('teste', snake.bodyVertices);
-
-        /*
-            NÃO TA FUNCIONANDO
-
-            Já tenho o corpo da cobrinha separada em vértices
-            Próximo passo: Identificar o vértice que está ao lado dela e evitar que ela vá para essa direção
-            Obs: Não deve ser regra absoluta, se não houver saída ela vai pra esse caminho mesmo
-        */
-
-        // for (let i = 0; i < 2; i++) {
-
-        //     let sumAxis = Math.round(movements.indexOf(selectMovement) / 3) * 2;
-                
-        //     if((snake.predictMovement(selectMovement)[i] + 4 == snake.body[2][i]
-        //     || snake.predictMovement(selectMovement)[i] - 4 == snake.body[2][i])){
-
-        //         let _movements = [...movements];
-        //         delete _movements[_movements.indexOf(selectMovement)];
-
-        //         [..._movements].shuffle().map(direction => {
-
-        //             if(!hazardousAreas.includesArr(snake.predictMovement(direction))){
-        //                 selectMovement = direction;
-        //             }
-    
-        //         });
-
-        //     }
-            
-        // }
-
-        if(selectMovement) snake.direction = selectMovement;
+        snake.direction = selectedMovement;
 
     }
 

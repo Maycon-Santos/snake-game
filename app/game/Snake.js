@@ -13,11 +13,16 @@ function Snake(game, props){
 
     this.merge(props);
 
-    const directionMap = {
+    this.directionMap = {
         'left': [-1, 0],
         'right': [1, 0],
         'up': [0, -1],
-        'down': [0, 1]
+        'down': [0, 1],
+
+        '-1': 'left',
+        1: 'right',
+        '-2': 'up',
+        2: 'down'
     }
 
     var direction = gameProps.snakes.initialDirection;
@@ -25,7 +30,7 @@ function Snake(game, props){
         get: () => direction,
         set: (to) => {
 
-            let directions = Object.keys(directionMap),
+            let directions = Object.keys(this.directionMap),
                 oldDirection = direction,
                 reverse = gameProps.snakes.reverse;
 
@@ -76,23 +81,71 @@ function Snake(game, props){
     Object.defineProperty(this, 'bodyVertices', {
         get: () => {
 
-            var bodyWithVetexes = [[this.body[0]]],
-                prevPos = this.body[0];
+            var body = [[this.body[0]]],
+                prevPos = this.body[0],
+                axisEqual;
 
             for(let i = 1, L = this.body.length; i < L; i++){
                 const bodyFragment = this.body[i];
 
-                if(bodyFragment[0] != prevPos[0] && bodyFragment[1] != prevPos[1]){
-                    bodyWithVetexes.push([]);
-                }
+                bodyFragment.map((pos, axis) => {
 
-                bodyWithVetexes.lastItem().push(bodyFragment);
+                    if(pos == prevPos[axis]){
+                        if(!axisEqual) axisEqual = axis;
+                        else if(axisEqual != axis) {
+                            body.push([]);
+                            axisEqual = axis;
+                        }
+                    }
+
+                });
+
+                body.lastItem().push(bodyFragment);
 
                 prevPos = bodyFragment;
 
             }
 
-            return bodyWithVetexes;
+            return body;
+
+        }
+    });
+
+    Object.defineProperty(this, 'verticesDirections', {
+        get: () => {
+
+            let head = this.head,
+                body = this.bodyVertices,
+                directions = [];
+
+            loopBody: for(let i = 1, L = body.length; i < L; i++){
+                const fragment = body[i];
+
+                loopFragment: for(let j = 0, L2 = fragment.length; j < L2; j++){
+                    const pos = fragment[j];
+
+                    loopPos: for(let axis = 0, L3 = pos.length; axis < L3; axis++){
+
+                        if(head[axis] == pos[axis]){
+    
+                            let otherAxis = Math.abs(axis - 1);    
+    
+                            if(head[otherAxis] < pos[otherAxis])
+                                directions.push(this.directionMap[1 * (otherAxis + 1)]);
+                            else
+                                directions.push(this.directionMap[-1 * (otherAxis + 1)]);
+    
+                            break loopFragment;
+    
+                        }
+
+                    }
+                    
+                }
+
+            }
+
+            return directions;
 
         }
     });
@@ -129,7 +182,7 @@ function Snake(game, props){
 
     const nextPos = (steps = 1) => {
 
-        let direction = directionMap[this.direction],
+        let direction = this.directionMap[this.direction],
             axis = Math.abs(direction[1]),
             nextPos = [...this.body[0]];
 

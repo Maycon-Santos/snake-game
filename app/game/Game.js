@@ -78,7 +78,7 @@ Game.prototype.newGame = function(){
 }
 
 Game.prototype.for = function(object, fn){
-    for (let id = this[object].length-1; id >= 0; id--)
+    for(let id = 0, L = this[object].length; id < L; id++)
         fn(this[object][id], id);
 }
 
