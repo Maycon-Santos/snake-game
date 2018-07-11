@@ -11,7 +11,7 @@ function Food(game, id){
 
     this.draw = () => {
 
-        if(game.status != 'playing' || !this.type) return;
+        if(!this.type) return;
 
         game.ctx.fillStyle = this.type.color;
 

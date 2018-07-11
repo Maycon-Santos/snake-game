@@ -72,7 +72,6 @@ function Interface(game){
     this.gameOver = () => {
 
         if(game.winner){
-            console.log(gameProps.snakes.colors, game.winner.color);
             $gameOverText.style.color = gameProps.snakes.colors[game.winner.color];
             $gameOverText.innerText = game.winner.nickname;
         }else{
@@ -158,7 +157,10 @@ function Interface(game){
             nPlayers: $multiplayer_playersQtn.getAttribute('data-value')
         });
 
-        $gameOverSubmit.onclick = () => gameOverSubmit('multiplayer-menu');
+        $gameOverSubmit.onclick = () => {
+            game.playersInTheRoom.length = 1;
+            gameOverSubmit('multiplayer-menu');
+        }
 
     });
 

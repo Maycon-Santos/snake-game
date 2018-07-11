@@ -78,8 +78,22 @@ Game.prototype.newGame = function(){
 }
 
 Game.prototype.for = function(object, fn){
-    for(let id = 0, L = this[object].length; id < L; id++)
-        fn(this[object][id], id);
+
+    if(typeof object == 'object'){
+
+        for(let i = 0, L = object.length; i < L; i++){
+            
+            if(fn(object[i], i) == false) break;
+        }
+
+    }else{
+
+        for(let id = 0, L = this[object].length; id < L; id++){
+            if(fn(this[object][id], id) == false) break;
+        }
+
+    }
+
 }
 
 Game.prototype.addPlayers = function(){
@@ -121,7 +135,7 @@ Game.prototype.createPlayers = function(qnt){
             id: `comp-${i}`,
             enhancerId: this.playersInTheRoom.length,
             AI: true,
-            nickname: `Computer ${this.playersInTheRoom.length + 1}`,
+            nickname: `Computer ${i + 1}`,
             bodyStart: newBodyStart(this.playersInTheRoom.length),
             color: this.generateColor()
         }

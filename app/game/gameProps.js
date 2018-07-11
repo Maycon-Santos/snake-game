@@ -27,7 +27,7 @@ var gameProps = {
     },
 
     foods: {
-        qnt: 2,
+        qnt: 8,
 
         types: {
             normal: {

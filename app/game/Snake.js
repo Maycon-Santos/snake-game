@@ -118,17 +118,17 @@ function Snake(game, props){
                 body = this.bodyVertices,
                 directions = [];
 
-            loopBody: for(let i = 1, L = body.length; i < L; i++){
+            for(let i = 1, L = body.length; i < L; i++){
                 const fragment = body[i];
 
                 loopFragment: for(let j = 0, L2 = fragment.length; j < L2; j++){
                     const pos = fragment[j];
 
-                    loopPos: for(let axis = 0, L3 = pos.length; axis < L3; axis++){
+                    for(let axis = 0, L3 = pos.length; axis < L3; axis++){
 
                         if(head[axis] == pos[axis]){
     
-                            let otherAxis = Math.abs(axis - 1);    
+                            let otherAxis = Math.abs(axis - 1);
     
                             if(head[otherAxis] < pos[otherAxis])
                                 directions.push(this.directionMap[1 * (otherAxis + 1)]);
