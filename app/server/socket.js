@@ -30,10 +30,11 @@ io.on('connection', socket => {
         socket.broadcast.emit('newPlayer', player);
 
         socket.on('disconnect', () => {
-            if(game.roomCreator == socket.id){
-                game.playersInTheRoom = [];
+            if(socket.id == game.roomCreator){
+                game.roomCreator = undefined;
+                game.playersInTheRoom.length = 0;
                 game.clear();
-                io.emit('multiplayer-local-deny');
+                io.emit('multiplayer-local deny');
             }else{
                 delete game.playersInTheRoom[enhancerId];
                 game.playersInTheRoom = game.playersInTheRoom.filter(Boolean);

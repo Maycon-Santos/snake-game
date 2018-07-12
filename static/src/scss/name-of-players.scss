@@ -1,19 +1,45 @@
 #game{
+    &.toStart{ #interface{ #name-of-players{ display: none; } } }
     #interface{
+        
         #name-of-players{
-            position: absolute;
-            top: 0;
-            left: 0;
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px;
+
+            width: 130px;
+
+            background: rgba($color: $green-003, $alpha: .1);
+
+            z-index: 101;
 
             ul{
-                display: flex;
                 list-style: none;
 
                 li{
-                    margin: 2vw 0 0 2vw;
-                    font-size: 1.5vw;
+                    font-size: 9.6px;
                     font-family: 'PressStart2P', sans-serif;
                     text-transform: uppercase;
+
+                    & + li{
+                        margin-top: 10px;
+                    }
+
+                    &.dead{
+                        position: relative;
+
+                        &::before{
+                            content: '';
+                            display: block;
+                            position: absolute;
+                            top: calc(50% - 0.75px);
+                            left: 0;
+                            width: 100%;
+                            height: 1.5px;
+                            background: rgba(55,70,53,0.7);
+                        }
+                    }
                 }
             }
         }

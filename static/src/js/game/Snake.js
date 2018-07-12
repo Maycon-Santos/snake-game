@@ -7,7 +7,18 @@ function Snake(game, props){
     this.body = [];
     this.color = 0;
     this.bodyStart = [0, 0];
-    this.killed = false;
+
+    let killed = false;
+    Object.defineProperty(this, 'killed', {
+        get: () => killed,
+        set: Bool => {
+            if(Bool){
+                game.sounds.died.play;
+                onDeath();
+            }
+            killed = Bool;
+        }
+    })
 
     this.merge(props);
 
@@ -38,5 +49,7 @@ function Snake(game, props){
         });
 
     }
+
+    const onDeath = () => game.interface.playerOnDeath(this.enhancerId);
 
 }

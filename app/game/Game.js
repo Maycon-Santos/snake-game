@@ -119,7 +119,7 @@ Game.prototype.addFoods = function(){
 
 Game.prototype.generateColor = function(){
 
-    var color = Math.round(Math.random()*gameProps.snakes.colors.length);
+    var color = Math.round(Math.random() * (gameProps.snakes.colors.length - 1));
     
     return this.colorsInUse.includes(color) ? this.generateColor() : color;
 

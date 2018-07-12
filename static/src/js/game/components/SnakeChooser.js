@@ -43,6 +43,7 @@ function SnakeChooser($interface){
             if(e.target.className.indexOf('disabled') == -1){
                 this.currentColor--;
                 this.changeSnakeColor();
+                game.sounds.prev.play;
             }
         });
 
@@ -50,6 +51,7 @@ function SnakeChooser($interface){
             if(e.target.className.indexOf('disabled') == -1){
                 this.currentColor++;
                 this.changeSnakeColor();
+                game.sounds.next.play;
             }
         });
 

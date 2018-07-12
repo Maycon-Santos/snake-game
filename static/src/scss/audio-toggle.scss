@@ -1,0 +1,22 @@
+#game{
+    #audio-toggle{
+        position: absolute;
+        bottom: 20px;
+        right: 20px;
+
+        width: 30px;
+        height: 30px;
+
+        background-image: url(../images/icons/audio-enabled.svg);
+        background-size: contain;
+        background-repeat: no-repeat;
+
+        cursor: pointer;
+
+        z-index: 150;
+
+        &.muted{
+            background-image: url(../images/icons/audio-disabled.svg);
+        }
+    }
+}

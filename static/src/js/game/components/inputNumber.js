@@ -19,6 +19,8 @@ function InputNumber(){
                 $inputNumber.setAttribute('data-value', value);
             }
 
+            game.sounds.prev.play;
+
         });
 
         $incrementButton.addEventListener('click', () => {
@@ -31,6 +33,8 @@ function InputNumber(){
                 $input.innerHTML = (value == 0) ? 'o' : value;
                 $inputNumber.setAttribute('data-value', value);
             }
+
+            game.sounds.next.play;
 
         });
 

@@ -20,8 +20,10 @@ function Game(canvas){
 
     var status, $game = canvas.parentNode;
     Object.defineProperty(this, 'status', {
-        set: newStatus =>
-            $game.className = status = newStatus,
+        set: newStatus => {
+            $game.className = status = newStatus;
+            if(newStatus == 'game-over') this.sounds.gameOver.play;
+        },
         get: () => status
     });
 
@@ -47,7 +49,10 @@ function Game(canvas){
     this.status = 'toStart';
     this.engine = new Engine(this);
     this.interface = new Interface(this);
+    this.sounds = new Sounds(this);
     this.socket = io();
+
+    this.mute = false;
 
     this.multiplayerLocalAllow = false;
 
@@ -79,8 +84,22 @@ Game.prototype.clear = function(){
 }
 
 Game.prototype.for = function(object, fn){
-    for (let id = this[object].length-1; id >= 0; id--)
-        fn(this[object][id], id);
+
+    if(typeof object == 'object'){
+
+        for(let i = 0, L = object.length; i < L; i++){
+            
+            if(fn(object[i], i) == false) break;
+        }
+
+    }else{
+
+        for(let id = 0, L = this[object].length; id < L; id++){
+            if(fn(this[object][id], id) == false) break;
+        }
+
+    }
+
 }
 
 Game.prototype.addPlayers = function(){
@@ -172,6 +191,7 @@ Game.prototype.socketEvents = function(){
     this.socket.on('start', () => {
         
         this.newGame();
+        this.interface.listPlayersInGame();
 
     });
 

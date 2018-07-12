@@ -3,13 +3,21 @@ function Food(game, id){
     this.id = id;
     this.type;
 
+    var prevPosition = [];
     this.position = [];
 
     game.engine.add(this);
 
     game.socket.on(`foodUpdate-${id}`, this.update);
 
+
+
     this.draw = () => {
+
+        if(!this.position.isEqual(prevPosition)){
+            game.sounds.ate.play;
+            prevPosition = [...this.position];
+        }
 
         if(!this.type) return;
 
