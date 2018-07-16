@@ -92,73 +92,123 @@ function Food(game, id){
     }
 
 }
-function Game(canvas){
+/**
+ * Main class that starts the game
+ * It receives as parameter the canvas that goes the whole game
+ *
+ * @param {*} $canvas
+ */
+function Game($canvas){
 
-    // Properties
+    // Define properties
     var tileSize;
-    Object.defineProperty(this, 'tileSize', {
-        set: function(val){
-            if(+val) tileSize = Math.floor(+val);
-            else return console.error('Invalid value');
-            canvas.width = this.tileSize * gameProps.tiles[0];
-            canvas.height = this.tileSize * gameProps.tiles[1];
-            canvas.style.backgroundSize = `${this.tileSize}px ${this.tileSize}px`;
+    var status
+    var $game = $canvas.parentNode;
+    var mute = localStorage.getItem("mute") == 'true';
+
+    Object.defineProperties(this, {
+
+        // ID of socket
+        id: { writable: true },
+
+        tileSize: {
+
+            set: val => {
+                tileSize = Math.floor(+val);
+                $canvas.width = this.tileSize * gameProps.tiles[0];
+                $canvas.height = this.tileSize * gameProps.tiles[1];
+                $canvas.style.backgroundSize = `${this.tileSize}px ${this.tileSize}px`;
+            },
+
+            get: () => tileSize
+
         },
-        get: function(){ return tileSize; }
-    });
 
-    Object.defineProperty(this, 'ctx', {
-        value: canvas.getContext('2d'),
-        writable: false
-    });
-
-    var status, $game = canvas.parentNode;
-    Object.defineProperty(this, 'status', {
-        set: newStatus => {
-            $game.className = status = newStatus;
-            if(newStatus == 'game-over') this.sounds.gameOver.play;
+        ctx: {
+            value: $canvas.getContext('2d'),
+            writable: false
         },
-        get: () => status
-    });
 
-    Object.defineProperty(this, 'colorsInUse', {
-        get: () => {
-            var colorsInUse = [];
-            for (let i = this.playersInTheRoom.length - 1; i >= 0; i--) {
-                const player = this.playersInTheRoom[i];
-                colorsInUse.push(player.color);
+        status: {
+
+            set: newStatus => {
+                if(newStatus == 'game-over') this.sounds.gameOver.play;
+                $game.className = status = newStatus;
+            },
+
+            get: () => status
+
+        },
+
+        colorsInUse: {
+
+            get: () => {
+
+                var colorsInUse = [];
+
+                for (let i = this.playersInTheRoom.length - 1; i >= 0; i--) {
+                    const player = this.playersInTheRoom[i];
+                    colorsInUse.push(player.color);
+                }
+
+                return colorsInUse;
+
             }
-            return colorsInUse;
-        }
+
+        },
+
+        mute: {
+            
+            set: Bool => {
+
+                mute = !!Bool;
+                localStorage.setItem('mute', mute);
+                this.interface.audioToggle(mute);
+
+            },
+
+            get: () => mute
+
+        },
+
+        winner: { writable: true },
+
+        playersInTheRoom: { value: [], writable: false },
+
+        players: { value: [], writable: false },
+
+        foods: { value: [], writable: false },
+
+        multiplayerLocalAllow: { value: false },
+
+        socket: { value: io(), writable: false }
+
     });
 
-    this.winner = null;
+    /*
+    * Factory:
+    *   The objects have to be instantiated later because they receive "this" as a parameter and trying to access the properties before will probably give the error.
+    */
+    Object.defineProperties(this, {
 
-    this.playersInTheRoom = [];
+        engine: { value: new Engine(this), writable: false },
 
-    this.id = null;
-    this.players = [];
-    this.foods = [];
+        interface: { value: new Interface(this), writable: false },
 
-    this.status = 'toStart';
-    this.engine = new Engine(this);
-    this.interface = new Interface(this);
-    this.sounds = new Sounds(this);
-    this.socket = io();
+        sounds: { value: new Sounds(this), writable: false }
 
-    this.mute = false;
+    });
 
-    this.multiplayerLocalAllow = false;
+    this.socket.on('teste', t => console.log(t));
 
-    this.socket.on('teste', t => console.log(t))
-
+    this.interface.audioToggle(mute);
     gestureViewer(this);
 
     this.engine.run();
 
 }
 
-Game.prototype.newGame = function(){
+Game.prototype.start = function(){
 
     this.interface.closeModal();
     this.clear();
@@ -171,8 +221,8 @@ Game.prototype.newGame = function(){
 }
 
 Game.prototype.clear = function(){
-    this.players = [];
-    this.foods = [];
+    this.players.clear();
+    this.foods.clear();
     this.winner = null;
     this.engine.clear();
 }
@@ -284,7 +334,7 @@ Game.prototype.socketEvents = function(){
 
     this.socket.on('start', () => {
         
-        this.newGame();
+        this.start();
         this.interface.listPlayersInGame();
 
     });
@@ -335,7 +385,7 @@ Game.prototype.socketEvents = function(){
 
     this.socket.on('multiplayer-local deny', () => {
 
-        this.playersInTheRoom = [];
+        this.playersInTheRoom.clear();
         this.clear();
         this.interface.open('login');
 
@@ -481,6 +531,11 @@ function Interface(game){
 
     new InputNumber();
 
+    if(localStorage.getItem('lastNickname'))
+        $inputNickname.value = localStorage.getItem('lastNickname');
+
+    $inputNickname.focus();
+
     this.openModal = () => $modal.classList.remove('closed');
     this.closeModal = () => $modal.classList.add('closed');
     this.open = what => $interface.className = what;
@@ -564,6 +619,8 @@ function Interface(game){
 
             this.open('after-login');
 
+            localStorage.setItem('lastNickname', $inputNickname.value);
+
             game.sounds.enter.play;
 
         });
@@ -632,6 +689,7 @@ function Interface(game){
 
         game.multiplayerLocalAllow = true;
         game.socket.emit('multiplayer-local allow');
+        $multiplayerLocalMenuSubmit.removeAttribute('disabled');
 
     });
 
@@ -659,12 +717,8 @@ function Interface(game){
 
     });
 
-    $audioToggle.addEventListener('click', () => {
-
-        game.mute = !game.mute;
-        $audioToggle.className = game.mute ? 'muted' : '';
-
-    });
+    this.audioToggle = mute => $audioToggle.className = mute ? 'muted' : '';
+    $audioToggle.addEventListener('click', () => game.mute = !game.mute);
 
 }
 function Snake(game, props){
@@ -815,7 +869,7 @@ function Sounds(game){
         gameOver: 'game-over.wav'
     }
 
-    const addPlayers = (() => {
+    const addAudioPlayers = (() => {
 
         const keys = Object.keys(soundMap);
         for (let i = 0, L = keys.length; i < L; i++) {
@@ -837,10 +891,7 @@ function Sounds(game){
 
                 play: {
                     get: () => {
-                        if(!game.mute){
-                            $player.currentTime = 0;
-                            $player.play();
-                        }
+                        if(!game.mute) $player.play();
                     }
                 },
 
@@ -881,6 +932,10 @@ Array.prototype.lastItem = function(){
 
     return this[this.length - 1];
 
+}
+
+Array.prototype.clear = function(){
+    this.length = 0;
 }
 Object.prototype.merge = function(object){
     for (const key in object) this[key] = object[key];

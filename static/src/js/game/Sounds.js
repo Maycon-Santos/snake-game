@@ -15,7 +15,7 @@ function Sounds(game){
         gameOver: 'game-over.wav'
     }
 
-    const addPlayers = (() => {
+    const addAudioPlayers = (() => {
 
         const keys = Object.keys(soundMap);
         for (let i = 0, L = keys.length; i < L; i++) {
@@ -37,10 +37,7 @@ function Sounds(game){
 
                 play: {
                     get: () => {
-                        if(!game.mute){
-                            $player.currentTime = 0;
-                            $player.play();
-                        }
+                        if(!game.mute) $player.play();
                     }
                 },
 

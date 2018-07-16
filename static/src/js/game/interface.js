@@ -60,6 +60,11 @@ function Interface(game){
 
     new InputNumber();
 
+    if(localStorage.getItem('lastNickname'))
+        $inputNickname.value = localStorage.getItem('lastNickname');
+
+    $inputNickname.focus();
+
     this.openModal = () => $modal.classList.remove('closed');
     this.closeModal = () => $modal.classList.add('closed');
     this.open = what => $interface.className = what;
@@ -143,6 +148,8 @@ function Interface(game){
 
             this.open('after-login');
 
+            localStorage.setItem('lastNickname', $inputNickname.value);
+
             game.sounds.enter.play;
 
         });
@@ -211,6 +218,7 @@ function Interface(game){
 
         game.multiplayerLocalAllow = true;
         game.socket.emit('multiplayer-local allow');
+        $multiplayerLocalMenuSubmit.removeAttribute('disabled');
 
     });
 
@@ -238,11 +246,7 @@ function Interface(game){
 
     });
 
-    $audioToggle.addEventListener('click', () => {
-
-        game.mute = !game.mute;
-        $audioToggle.className = game.mute ? 'muted' : '';
-
-    });
+    this.audioToggle = mute => $audioToggle.className = mute ? 'muted' : '';
+    $audioToggle.addEventListener('click', () => game.mute = !game.mute);
 
 }

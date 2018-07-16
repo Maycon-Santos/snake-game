@@ -49,6 +49,10 @@ Array.prototype.shuffle = function(){
     return tempArr;
 
 }
+
+Array.prototype.clear = function(){
+    this.length = 0;
+}
 Number.prototype.isEqual = function(...values){
 
     for(let i = 0, L = values.length; i < L; i++){
@@ -70,7 +74,7 @@ const events = require('events');
 const express = require('express');
 const app = express();
 const internalIp = require('internal-ip');
-const server = app.listen(0);
+const server = app.listen(5300);
 
 var game = new Game();
 
@@ -190,73 +194,100 @@ function Food(game, id){
     this.create();
 
 }
+/**
+ * Main class that starts the game
+ */
 function Game(){
 
-    this.playersInTheRoom = [];
+    var status = 'toStart';
 
-    this.engine = new Engine(this);
+    Object.defineProperties(this, {
 
-    this.localhost = false;
-    this.mode = 'deathmatch';
+        players: { value: [], writable: false },
+        playersInTheRoom: { value: [], writable: false },
+        foods: { value: [], writable: false },
 
-    this.roomCreator = null;
-    this.multiplayerLocalAllow = false;
+        mode: { value: 'deathmatch' },
 
-    this.readyPlayers = 0;
+        roomCreator: { writable: true },
+
+        multiplayerLocalAllow: { value: false },
+
+        readyPlayers: { value: 0, enumerable: true },
+
+        colorsInUse: {
+            get: () => {
+
+                var colorsInUse = [];
+
+                for (let i = this.playersInTheRoom.length - 1; i >= 0; i--) {
+                    const player = this.playersInTheRoom[i];
+                    colorsInUse.push(player.color);
+                }
+
+                return colorsInUse;
+
+            }
+        },
+
+        winner: {
+
+            get: () => {
+
+                var winner;
+                this.for('players', player => {
+                    if(!player.killed) winner = player;
+                });
+    
+                return winner;
+    
+            }
+
+        },
+
+        status: {
+
+            get: () => status,
+
+            set: st => {
+
+                if(st == 'over') {
+
+                    if(!this.multiplayerLocalAllow) game.playersInTheRoom.length = 1;
+
+                    io.emit('game over', this.winner);
+                    this.clear();
+
+                }
+
+                status = st;
+
+            }
+
+        }
+
+    });
+
+    /*
+    * Factory:
+    *   The objects have to be instantiated later because they receive "this" as a parameter and trying to access the properties before will probably give the error.
+    */
+    Object.defineProperty(this, 'engine', { value: new Engine(this), writable: false });
 
     this.engine.run();
-
-    Object.defineProperty(this, 'colorsInUse', {
-        get: () => {
-            var colorsInUse = [];
-            for (let i = this.playersInTheRoom.length - 1; i >= 0; i--) {
-                const player = this.playersInTheRoom[i];
-                colorsInUse.push(player.color);
-            }
-            return colorsInUse;
-        }
-    });
-
-    Object.defineProperty(this, 'winner', {
-        get: () => {
-
-            var winner;
-            this.for('players', player => {
-                if(!player.killed) winner = player;
-            });
-
-            return winner;
-
-        }
-    });
-
-    var status = 'toStart';
-    Object.defineProperty(this, 'status', {
-        get: () => status,
-        set: st => {
-            if(st == 'over') {
-                if(!this.localhost) game.playersInTheRoom.length = 1;
-                else this.localhost = false;
-
-                io.emit('game over', this.winner);
-                this.clear();
-            }
-            status = st;
-        }
-    });
 
 }
 
 Game.prototype.event = new events.EventEmitter();
 
 Game.prototype.clear = function(){
-    this.players = [];
-    this.foods = [];
+    this.players.clear();
+    this.foods.clear();
     this.readyPlayers = 0;
     this.engine.clear();
 }
 
-Game.prototype.newGame = function(){
+Game.prototype.start = function(){
 
     this.clear();
     
@@ -913,6 +944,15 @@ io.on('connection', socket => {
 
     if(!game.roomCreator) game.roomCreator = socket.id;
 
+    socket.on('disconnect', () => {
+        if(socket.id == game.roomCreator){
+            game.roomCreator = undefined;
+            game.playersInTheRoom.length = 0;
+            game.clear();
+            io.emit('multiplayer-local deny');
+        }
+    });
+
     socket.on('login', data => {
 
         if(game.roomCreator != socket.id && !game.multiplayerLocalAllow)
@@ -939,12 +979,7 @@ io.on('connection', socket => {
         socket.broadcast.emit('newPlayer', player);
 
         socket.on('disconnect', () => {
-            if(socket.id == game.roomCreator){
-                game.roomCreator = undefined;
-                game.playersInTheRoom.length = 0;
-                game.clear();
-                io.emit('multiplayer-local deny');
-            }else{
+            if(socket.id != game.roomCreator){
                 delete game.playersInTheRoom[enhancerId];
                 game.playersInTheRoom = game.playersInTheRoom.filter(Boolean);
                 io.emit('delete player', enhancerId);
@@ -970,7 +1005,7 @@ io.on('connection', socket => {
             }
 
             io.emit('start');
-            game.newGame();
+            game.start();
 
         });
 
@@ -1041,9 +1076,8 @@ io.on('connection', socket => {
             game.readyPlayers++;
 
             if(game.readyPlayers == game.playersInTheRoom.length && game.playersInTheRoom.length > 1){
-                game.localhost = true;
                 io.emit('start');
-                game.newGame();
+                game.start();
             }
 
             socket.on('disconnect', () => game.readyPlayers--);

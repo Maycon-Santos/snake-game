@@ -4,6 +4,15 @@ io.on('connection', socket => {
 
     if(!game.roomCreator) game.roomCreator = socket.id;
 
+    socket.on('disconnect', () => {
+        if(socket.id == game.roomCreator){
+            game.roomCreator = undefined;
+            game.playersInTheRoom.length = 0;
+            game.clear();
+            io.emit('multiplayer-local deny');
+        }
+    });
+
     socket.on('login', data => {
 
         if(game.roomCreator != socket.id && !game.multiplayerLocalAllow)
@@ -30,12 +39,7 @@ io.on('connection', socket => {
         socket.broadcast.emit('newPlayer', player);
 
         socket.on('disconnect', () => {
-            if(socket.id == game.roomCreator){
-                game.roomCreator = undefined;
-                game.playersInTheRoom.length = 0;
-                game.clear();
-                io.emit('multiplayer-local deny');
-            }else{
+            if(socket.id != game.roomCreator){
                 delete game.playersInTheRoom[enhancerId];
                 game.playersInTheRoom = game.playersInTheRoom.filter(Boolean);
                 io.emit('delete player', enhancerId);
@@ -61,7 +65,7 @@ io.on('connection', socket => {
             }
 
             io.emit('start');
-            game.newGame();
+            game.start();
 
         });
 
@@ -132,9 +136,8 @@ io.on('connection', socket => {
             game.readyPlayers++;
 
             if(game.readyPlayers == game.playersInTheRoom.length && game.playersInTheRoom.length > 1){
-                game.localhost = true;
                 io.emit('start');
-                game.newGame();
+                game.start();
             }
 
             socket.on('disconnect', () => game.readyPlayers--);

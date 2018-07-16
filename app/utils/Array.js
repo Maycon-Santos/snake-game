@@ -49,3 +49,7 @@ Array.prototype.shuffle = function(){
     return tempArr;
 
 }
+
+Array.prototype.clear = function(){
+    this.length = 0;
+}

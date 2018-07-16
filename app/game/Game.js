@@ -1,70 +1,97 @@
+/**
+ * Main class that starts the game
+ */
 function Game(){
 
-    this.playersInTheRoom = [];
+    var status = 'toStart';
 
-    this.engine = new Engine(this);
+    Object.defineProperties(this, {
 
-    this.localhost = false;
-    this.mode = 'deathmatch';
+        players: { value: [], writable: false },
+        playersInTheRoom: { value: [], writable: false },
+        foods: { value: [], writable: false },
 
-    this.roomCreator = null;
-    this.multiplayerLocalAllow = false;
+        mode: { value: 'deathmatch' },
 
-    this.readyPlayers = 0;
+        roomCreator: { writable: true },
+
+        multiplayerLocalAllow: { value: false },
+
+        readyPlayers: { value: 0, enumerable: true },
+
+        colorsInUse: {
+            get: () => {
+
+                var colorsInUse = [];
+
+                for (let i = this.playersInTheRoom.length - 1; i >= 0; i--) {
+                    const player = this.playersInTheRoom[i];
+                    colorsInUse.push(player.color);
+                }
+
+                return colorsInUse;
+
+            }
+        },
+
+        winner: {
+
+            get: () => {
+
+                var winner;
+                this.for('players', player => {
+                    if(!player.killed) winner = player;
+                });
+    
+                return winner;
+    
+            }
+
+        },
+
+        status: {
+
+            get: () => status,
+
+            set: st => {
+
+                if(st == 'over') {
+
+                    if(!this.multiplayerLocalAllow) game.playersInTheRoom.length = 1;
+
+                    io.emit('game over', this.winner);
+                    this.clear();
+
+                }
+
+                status = st;
+
+            }
+
+        }
+
+    });
+
+    /*
+    * Factory:
+    *   The objects have to be instantiated later because they receive "this" as a parameter and trying to access the properties before will probably give the error.
+    */
+    Object.defineProperty(this, 'engine', { value: new Engine(this), writable: false });
 
     this.engine.run();
-
-    Object.defineProperty(this, 'colorsInUse', {
-        get: () => {
-            var colorsInUse = [];
-            for (let i = this.playersInTheRoom.length - 1; i >= 0; i--) {
-                const player = this.playersInTheRoom[i];
-                colorsInUse.push(player.color);
-            }
-            return colorsInUse;
-        }
-    });
-
-    Object.defineProperty(this, 'winner', {
-        get: () => {
-
-            var winner;
-            this.for('players', player => {
-                if(!player.killed) winner = player;
-            });
-
-            return winner;
-
-        }
-    });
-
-    var status = 'toStart';
-    Object.defineProperty(this, 'status', {
-        get: () => status,
-        set: st => {
-            if(st == 'over') {
-                if(!this.localhost) game.playersInTheRoom.length = 1;
-                else this.localhost = false;
-
-                io.emit('game over', this.winner);
-                this.clear();
-            }
-            status = st;
-        }
-    });
 
 }
 
 Game.prototype.event = new events.EventEmitter();
 
 Game.prototype.clear = function(){
-    this.players = [];
-    this.foods = [];
+    this.players.clear();
+    this.foods.clear();
     this.readyPlayers = 0;
     this.engine.clear();
 }
 
-Game.prototype.newGame = function(){
+Game.prototype.start = function(){
 
     this.clear();
     

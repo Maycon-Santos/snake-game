@@ -5,7 +5,7 @@ const events = require('events');
 const express = require('express');
 const app = express();
 const internalIp = require('internal-ip');
-const server = app.listen(0);
+const server = app.listen(5300);
 
 var game = new Game();
 
