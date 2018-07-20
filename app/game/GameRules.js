@@ -40,9 +40,17 @@ function GameRules(game){
         game.for('foods', food => {
             game.for('players', player => {
                 if(player.head.isEqual(food.position)){
+
                     player.increase++;
+
+                    const powerup = food.type.powerup || null;
+
+                    if(powerup && powerups[powerup])
+                        powerups[powerup](player, game);
+                        
                     food.create();
                     game.event.emit('foodEated', food.id);
+
                 }
             });
         })
@@ -52,22 +60,18 @@ function GameRules(game){
 
         if(game.status != 'playing') return;
 
-        if(game.mode == 'deathmatch'){
+        snakeColision();
 
-            snakeColision();
+        game.for('players', player => {
+            if(player.killed) return;
+            player.killed = player.collided; // Kill the player if collided
+            if(player.killed) this.deathCounter++;
+        });
 
-            game.for('players', player => {
-                if(player.killed) return;
-                player.killed = player.collided; // Kill the player if collided
-                if(player.killed) this.deathCounter++;
-            });
+        if(this.deathCounter >= game.players.length - 1)
+            game.status = 'over';
 
-            if(this.deathCounter >= game.players.length - 1)
-                game.status = 'over';
-
-            snakeAteFood();
-
-        }
+        snakeAteFood();
 
     }
 

@@ -1,0 +1,1 @@
+powerups.set('super increase', snake => snake.increase += 5);

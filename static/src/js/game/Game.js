@@ -8,7 +8,7 @@ function Game($canvas){
 
     // Define properties
     var tileSize;
-    var status
+    var status;
     var $game = $canvas.parentNode;
     var mute = localStorage.getItem("mute") == 'true';
 
@@ -16,6 +16,22 @@ function Game($canvas){
 
         // ID of socket
         id: { writable: true },
+
+        // Will receive the winner at the end of the game
+        winner: { writable: true },
+
+        // Stores the players before sending for the engine to process
+        playersInTheRoom: { value: [], writable: false },
+
+        // Players to be processed by engine
+        players: { value: [], writable: false },
+
+        // Foods to be processed by the engine
+        foods: { value: [], writable: false },
+
+        multiplayerLocalAllow: { value: false, writable: true },
+
+        socket: { value: io(), writable: false },
 
         tileSize: {
 
@@ -35,6 +51,7 @@ function Game($canvas){
             writable: false
         },
 
+        // Status of the game
         status: {
 
             set: newStatus => {
@@ -46,16 +63,15 @@ function Game($canvas){
 
         },
 
+        // Get the winner of the match
         colorsInUse: {
 
             get: () => {
 
                 var colorsInUse = [];
 
-                for (let i = this.playersInTheRoom.length - 1; i >= 0; i--) {
-                    const player = this.playersInTheRoom[i];
-                    colorsInUse.push(player.color);
-                }
+                this.for('playersInTheRoom', player =>
+                    colorsInUse.push(player.color));
 
                 return colorsInUse;
 
@@ -63,6 +79,7 @@ function Game($canvas){
 
         },
 
+        // Sound of the game
         mute: {
             
             set: Bool => {
@@ -75,19 +92,7 @@ function Game($canvas){
 
             get: () => mute
 
-        },
-
-        winner: { writable: true },
-
-        playersInTheRoom: { value: [], writable: false },
-
-        players: { value: [], writable: false },
-
-        foods: { value: [], writable: false },
-
-        multiplayerLocalAllow: { value: false },
-
-        socket: { value: io(), writable: false }
+        }
 
     });
 
@@ -105,18 +110,19 @@ function Game($canvas){
 
     });
 
+    this.socket.on('is playing', () =>
+        this.interface.dialogBox.alert('Danied', 'The game is already happening. Try again later.'));
+
     this.socket.on('teste', t => console.log(t));
 
     this.interface.audioToggle(mute);
     gestureViewer(this);
 
-    this.engine.run();
-
 }
 
 Game.prototype.start = function(){
 
-    this.interface.closeModal();
+    this.interface.hideModal();
     this.clear();
 
     this.addPlayers();
@@ -166,12 +172,12 @@ Game.prototype.addPlayers = function(){
 }
 
 Game.prototype.addFoods = function(){
-    let food = new Food(this, this.foods.length);
 
-    this.foods.push(food);
+    this.foods.push(new Food(this, this.foods.length));
 
     if(this.foods.length < gameProps.foods.qnt)
         this.addFoods();
+
 }
 
 Game.prototype.resizeCanvas = function(){
@@ -215,10 +221,8 @@ Game.prototype.login = function(playerNickname, callback){
 
         this.id = data.myID;
 
-        this.playersInTheRoom = data.playersInTheRoom;
+        this.playersInTheRoom.push(...data.playersInTheRoom, data.player);
     
-        this.playersInTheRoom.push(data.player);
-
         this.resizeCanvas();
         this.socketEvents();
 
@@ -253,10 +257,13 @@ Game.prototype.socketEvents = function(){
 
     });
 
-    this.socket.on('newPlayer', player => {
+    this.socket.on('new player', player => {
         this.playersInTheRoom.push(player);
         this.interface.listPlayersInTheRoom();
     });
+
+    this.socket.on('color in use', () =>
+        this.interface.dialogBox.alert('Denied', 'This color is being used.'));
 
     this.socket.on('prepare game', arr => {
 
@@ -268,22 +275,33 @@ Game.prototype.socketEvents = function(){
     this.socket.on('playersInTheRoom update', data => {
         var i = data.i;
         delete data.i;
-        this.playersInTheRoom[i] = Object.assign(this.playersInTheRoom[i], data);  
-        game.interface.listPlayersInTheRoom();      
+        this.playersInTheRoom[i].merge(data);
+        game.interface.listPlayersInTheRoom();
     });
 
     this.socket.on('delete player', i => {
-        delete this.playersInTheRoom[i];
-        this.playersInTheRoom = this.playersInTheRoom.filter(Boolean);
+        this.playersInTheRoom.splice(i, 1);
         this.interface.listPlayersInTheRoom();
     });
 
     this.socket.on('update', updates => {
 
-        for (const key in updates) {
-            for (const i in updates[key])
-                this[key][i] = Object.assign(this[key][i], updates[key][i]);
-        }
+        this.for(Object.keys(updates), key => {
+
+            this.for(updates[key], (update, i) => {
+
+                if(update){
+
+                    this.for(Object.keys(update), key2 =>
+                        this[key][i][key2] = update[key2]);
+
+                }
+
+            });
+
+            this.engine.draw();
+
+        });
 
     });
 

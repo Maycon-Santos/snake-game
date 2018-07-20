@@ -1,27 +1,31 @@
 function Food(game, id){
 
     this.id = id;
-    this.type;
 
+    this.color;
+
+    // Previous position (used to compare and know when the current position is changed)
     var prevPosition = [];
+
+    // Position of the food
     this.position = [];
 
     game.engine.add(this);
 
-    game.socket.on(`foodUpdate-${id}`, this.update);
-
-
-
+    // Render
     this.draw = () => {
 
+        // Checks if food position has changed
         if(!this.position.isEqual(prevPosition)){
+            // Play sound of eating
             game.sounds.ate.play;
             prevPosition = [...this.position];
         }
 
-        if(!this.type) return;
+        // If don't have color stop now
+        if(!this.color) return;
 
-        game.ctx.fillStyle = this.type.color;
+        game.ctx.fillStyle = this.color;
 
         game.ctx.beginPath();
 

@@ -1,5 +1,6 @@
 function SnakeControls(snake, game){
 
+    // Emit movement to server
     const pushMovement = moveTo => {
         if(!moveTo) return;
         game.socket.emit('moveTo', {
@@ -25,7 +26,7 @@ function SnakeControls(snake, game){
 
     keyMap && window.addEventListener('keydown', e => pushMovement(keyMap.direction(e.key)));
 
-    // Touch devices 
+    // For touch devices 
     let touchstart = {}, touchmove = {}, sensibilityTouch = gameProps.snakes.sensibilityTouch;
     const directions = [["left", "right"], ["up", "down"]];
     const orientationMap = {0: "portrait-primary", 180: "portrait-secondary", 90: "landscape-primary", "-90": "landscape-secondary"};
@@ -38,6 +39,7 @@ function SnakeControls(snake, game){
 
         let dragged = [[], []].map((_, axis) => touchstart[touchedArea][axis] - touchmove[touchedArea][axis]);
 
+        // Windows phone in landscape -_-
         if(isLumia){
             if(orientation === "landscape-primary") dragged[0] = -dragged[0];
             else if(orientation === "landscape-secondary") dragged[1] = -dragged[1];
@@ -69,7 +71,16 @@ function SnakeControls(snake, game){
         for (let i = $touchAreaKeys.length - 1; i >=0 ; i--) {
             const area = $touchAreaKeys[i];
             $touchArea[area].addEventListener('touchstart', e => touchstart[area] = touchPos(e));
-            $touchArea[area].addEventListener('touchmove', e => { touchmove[area] = touchPos(e); touchHandle(area); });
+            $touchArea[area].addEventListener('touchmove', e => {
+
+                e.preventDefault();
+
+                touchmove[area] = touchPos(e);
+                touchHandle(area);
+
+                return false;
+
+            }, { passive: false });
         }
     }
 

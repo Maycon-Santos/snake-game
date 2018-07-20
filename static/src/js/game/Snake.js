@@ -1,12 +1,17 @@
 function Snake(game, props){
 
     this.id = null;
+
+    // Id in relation to the player in the machine itself (0 is player 1, 1 is player 2)
     this.idLocal = null;
+
     this.enhancerId = null;
+
     this.nickname = null;
+
     this.body = [];
+
     this.color = 0;
-    this.bodyStart = [0, 0];
 
     let killed = false;
     Object.defineProperty(this, 'killed', {
@@ -14,7 +19,7 @@ function Snake(game, props){
         set: Bool => {
             if(Bool){
                 game.sounds.died.play;
-                onDeath();
+                game.interface.listPlayersInGame();
             }
             killed = Bool;
         }
@@ -22,17 +27,23 @@ function Snake(game, props){
 
     this.merge(props);
 
-    if(this.idLocal == 0) this.touchArea = 'all';
+    { // Multiplayer
 
-    if(this.idLocal == 1){
-        game.players[0].touchArea = 'right';
-        this.touchArea = 'left';
+        if(this.idLocal == 0) this.touchArea = 'all';
+
+        if(this.idLocal == 1){
+            game.players[0].touchArea = 'right';
+            this.touchArea = 'left';
+        }
+        
     }
 
     game.engine.add(this);
 
+    // Set controlls
     if(!isNaN(this.idLocal)) new SnakeControls(this, game);
 
+    // Render
     this.draw = () => {
 
         if(this.killed) return;
@@ -49,7 +60,5 @@ function Snake(game, props){
         });
 
     }
-
-    const onDeath = () => game.interface.playerOnDeath(this.enhancerId);
 
 }

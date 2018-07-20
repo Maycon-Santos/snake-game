@@ -1,0 +1,95 @@
+#game{
+    #interface{
+        &:not(.tutorial-screen) #tutorial-screen{ display: none !important; }
+        #tutorial-screen{
+            display: flex;
+            justify-content: space-between;
+
+            color: $green-003;
+
+            > div{
+                width: calc(50% - 10px);
+
+                > div{
+                    + div{
+                        margin-top: 20px;
+                    }
+                }
+            }
+
+            h2{
+                font-size: 1.3rem;
+                text-align: center;
+                margin-bottom: 20px;
+            }
+
+            h3{
+                font-size: 1rem;
+            }
+
+            ul{
+                list-style: none;
+
+                li{
+                    display: flex;
+                    align-items: center;
+                    margin-bottom: 15px;
+
+                    > div{
+                        display: inline-block;
+                        width: 15px;
+                        height: 15px;
+                        border-radius: 50%;
+                        margin-right: 15px;
+
+                        flex: 0 0 15px;
+
+                        &#normal{ background: #FFE400; }
+                        &#superSlow{ background: #af3907; }
+                        &#superSpeed{ background: #0f8660; }
+                        &#superIncrease{ background: #29002d; }
+                    }
+
+                    span{ font-size: .85em; }
+                }
+            }
+
+            .keys{
+                display: flex;
+                justify-content: center;
+                flex-wrap: wrap;
+                list-style: none;
+
+                margin: 15px 0;
+
+                li:not(:nth-child(2)){
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+
+                    width: 30px;
+                    height: 30px;
+                    border: 2px $green-003 solid;
+                }
+
+                li:nth-child(1){
+                    margin-bottom: 5px;
+                }
+
+                li:nth-child(4){
+                    margin: 0 5px;
+                }
+
+                li:nth-child(2){ flex-basis: 100%; }
+            }
+
+            .list-controls{
+                > span{
+                    display: block;
+                    font-size: .8rem;
+                    margin-bottom: 5px;
+                }
+            }
+        }
+    }
+}

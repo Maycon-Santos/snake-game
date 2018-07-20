@@ -105,20 +105,20 @@ electron.app.on('window-all-closed', () => {
 });
 function Engine(){
 
+    // Elements to process
     var objects = [],
+    // Elements processed
         updates = {};
 
-    const runFunction = (fn, ...args) => {
+    const update = (deltaTime) => {
 
         var i = objects.length;
 
         while(i--){
-            if(typeof objects[i][fn] == 'function') objects[i][fn](...args);
+            if(typeof objects[i]['update'] == 'function') objects[i]['update'](deltaTime);
         }
 
     }
-
-    const update = (deltaTime) => runFunction('update', deltaTime);
 
     const sendUpdate = () => {
         if(Object.keys(updates).length){
@@ -166,13 +166,15 @@ function Food(game, id){
 
     this.id = id;
 
-    var foodTypes = []
+    // Receive food types by gameProps
+    var foodTypes = [];
     this.type;
 
     this.position = [];
 
     game.engine.add(this);
 
+    // Set food types and chance
     for (const key in gameProps.foods.types) {
         const foodType = gameProps.foods.types[key],
               chance = foodType.chance;
@@ -180,15 +182,21 @@ function Food(game, id){
         for (let i = 0; i < chance; i++) foodTypes.push(foodType);
     }
 
+    // Function responsible for sending the processed data to the client
+    this.senUpdate = update =>
+        game.engine.sendUpdate('foods', this.id, update);
+
     this.create = function(){
 
         const selectFood = Math.round(Math.random() * (foodTypes.length - 1));
 
         this.type = foodTypes[selectFood];
 
+        // Generate a new position
         this.position = [[], []].map((_, axis) => Math.round(Math.random() * (gameProps.tiles[axis] - 1)));
     
-        io.emit(`foodUpdate-${id}`, {position: this.position, type: this.type});
+        this.senUpdate({position: this.position, color: this.type.color});
+
     }
 
     this.create();
@@ -199,37 +207,43 @@ function Food(game, id){
  */
 function Game(){
 
+    // Define properties
     var status = 'toStart';
 
     Object.defineProperties(this, {
 
-        players: { value: [], writable: false },
+        // Stores the players before sending for the engine to process
         playersInTheRoom: { value: [], writable: false },
+
+        // Players to be processed by engine
+        players: { value: [], writable: false },
+        
+        // Foods to be processed by the engine
         foods: { value: [], writable: false },
 
-        mode: { value: 'deathmatch' },
-
+        // Socket id of the room creator
         roomCreator: { writable: true },
 
-        multiplayerLocalAllow: { value: false },
+        multiplayerLocalAllow: { value: false, writable: true },
 
-        readyPlayers: { value: 0, enumerable: true },
+        // Players in the room who are ready to start
+        readyPlayers: { value: 0, writable: true },
 
+        // Colors in use by other users
         colorsInUse: {
             get: () => {
 
                 var colorsInUse = [];
 
-                for (let i = this.playersInTheRoom.length - 1; i >= 0; i--) {
-                    const player = this.playersInTheRoom[i];
-                    colorsInUse.push(player.color);
-                }
+                this.for('playersInTheRoom', player =>
+                    colorsInUse.push(player.color));
 
                 return colorsInUse;
 
             }
         },
 
+        // Get the winner of the match
         winner: {
 
             get: () => {
@@ -245,22 +259,28 @@ function Game(){
 
         },
 
+        // Status of the game "playing, game-over, etc..."
         status: {
 
             get: () => status,
 
-            set: st => {
+            set: newStatus => {
 
-                if(st == 'over') {
+                if(newStatus == 'over') {
 
-                    if(!this.multiplayerLocalAllow) game.playersInTheRoom.length = 1;
+                    // Clear if the player is alone
+                    if(!this.multiplayerLocalAllow)
+                        game.playersInTheRoom.length = 1;
 
+                    // Emit the winner
                     io.emit('game over', this.winner);
+
+                    // Clear the game engine
                     this.clear();
 
                 }
 
-                status = st;
+                status = newStatus;
 
             }
 
@@ -293,13 +313,16 @@ Game.prototype.start = function(){
     
     new GameRules(this);
 
+    // Add foods and players to engine
     this.addFoods();
     this.addPlayers();
 
+    // Set the status of the game
     this.status = "playing";
 
 }
 
+// Shortcut to loop with for
 Game.prototype.for = function(object, fn){
 
     if(typeof object == 'object'){
@@ -321,13 +344,8 @@ Game.prototype.for = function(object, fn){
 
 Game.prototype.addPlayers = function(){
 
-    for (let i = this.playersInTheRoom.length - 1; i >= 0 ; i--) {
-        const playerInTheRoom = this.playersInTheRoom[i];
-
-        let player = new Snake(this, playerInTheRoom);
-
-        this.players.push(player);
-    }
+    this.for('playersInTheRoom', player =>
+        this.players.push(new Snake(this, player)));
 
 }
 
@@ -340,14 +358,15 @@ Game.prototype.addFoods = function(){
 
 }
 
+// Get an unused color
 Game.prototype.generateColor = function(){
 
     var color = Math.round(Math.random() * (gameProps.snakes.colors.length - 1));
-    
     return this.colorsInUse.includes(color) ? this.generateColor() : color;
 
 }
 
+// Create players with A.I
 Game.prototype.createPlayers = function(qnt){
 
     let players = [];
@@ -402,23 +421,43 @@ var gameProps = {
     },
 
     foods: {
-        qnt: 8,
+        qnt: 1,
 
         types: {
             normal: {
-                chance: 5,
+                chance: 30,
                 color: '#FFE400'
             },
 
-            freezer: {
-                chance: 0,
-                color: '#008F30'
+            superSlow: {
+                chance: 3,
+                color: '#af3907',
+                powerup: 'super slow'
             },
 
             superSpeed: {
+                chance: 3,
+                color: '#0f8660',
+                powerup: 'super speed'
+            },
+
+            superIncrease: {
+                chance: 3,
+                color: '#29002d',
+                powerup: 'super increase'
+            },
+            
+            freeze: {
                 chance: 0,
-                color: '#008F30'
+                color: '#076f96',
+                powerup: 'freeze'
+            },
+
+            invisible: {
+                chance: 0,
+                color: '#a607af'
             }
+
         }
 
     }
@@ -466,9 +505,17 @@ function GameRules(game){
         game.for('foods', food => {
             game.for('players', player => {
                 if(player.head.isEqual(food.position)){
+
                     player.increase++;
+
+                    const powerup = food.type.powerup || null;
+
+                    if(powerup && powerups[powerup])
+                        powerups[powerup](player, game);
+                        
                     food.create();
                     game.event.emit('foodEated', food.id);
+
                 }
             });
         })
@@ -478,38 +525,77 @@ function GameRules(game){
 
         if(game.status != 'playing') return;
 
-        if(game.mode == 'deathmatch'){
+        snakeColision();
 
-            snakeColision();
+        game.for('players', player => {
+            if(player.killed) return;
+            player.killed = player.collided; // Kill the player if collided
+            if(player.killed) this.deathCounter++;
+        });
 
-            game.for('players', player => {
-                if(player.killed) return;
-                player.killed = player.collided; // Kill the player if collided
-                if(player.killed) this.deathCounter++;
-            });
+        if(this.deathCounter >= game.players.length - 1)
+            game.status = 'over';
 
-            if(this.deathCounter >= game.players.length - 1)
-                game.status = 'over';
-
-            snakeAteFood();
-
-        }
+        snakeAteFood();
 
     }
 
 }
 const newBodyStart = id => [5 * (id+1), 5 * (id+1), 'down'];
+const powerups = new function(){
+
+    this.set = (powerupName, func) =>
+        this[powerupName] = func;
+
+}
+powerups.set('freeze', (snake, game) => {
+
+    game.for('players', player => {
+
+        if(player.enhancerId == snake.enhancerId) return;
+
+        player.freeze += 10;
+
+    });
+
+});
+powerups.set('super increase', snake => snake.increase += 5);
+powerups.set('super slow', (snake, game) => {
+
+    game.for('players', player => {
+
+        if(player.enhancerId == snake.enhancerId) return;
+
+        player.superSlow += 50;
+
+    });
+
+});
+powerups.set('super speed', snake => {
+    
+    snake.superSpeed += 50;
+
+});
 function Snake(game, props){
 
+    // Socket id of the player
     this.id = null;
+
     this.enhancerId = null;
+
     this.body = [];
 
-    this.increase = 0;
+    // Powerups
+    this.increase = 0; // Number the snake will grow
+    this.superSpeed = 0;
+    this.superSlow = 0;
+    this.freeze = 0;
+
     this.collided = false;
 
     this.bodyStart = [0, 0];
 
+    // If the snake is going to have A.I
     this.AI = false;
 
     this.merge(props);
@@ -651,36 +737,54 @@ function Snake(game, props){
         }
     });
 
+    // Function responsible for sending the processed data to the client
     this.senUpdate = update =>
         game.engine.sendUpdate('players', this.enhancerId, update);
 
     game.engine.add(this);
+
+    // Get movements by controlls of the client
     const snakeControls = new SnakeControls(this, game);
 
+    // Create a new body
     this.newBody();
 
+    // Insert snake A.I
     if(this.AI) this.AI = new snakeAI(game, this);
 
-    var progressMove = 0;
+    var progressed = 0;
     const movement = (deltaTime) => {
 
         let speed = gameProps.snakes.speed;
+
+        if(this.superSpeed > 0) speed *= 1.4;
+        if(this.superSlow > 0) speed *= 0.5;
+
         let progress = deltaTime * speed;
-    
-        if(~~progress <= ~~progressMove) return;
+
+        if(progressed > progress) progressed = 0;
+
+        if(~~progress <= ~~progressed) return;
 
         if(this.AI) this.AI.movement();
         else snakeControls.currentMovement();
 
-        progressMove = progress != speed ? progress : 0;
+        progressed = progress >= speed ? 0 : progress;
         
-        this.body.splice(0, 0, nextPos());
-        this.increase < 1 ? this.body.pop() : this.increase--;
+        if(this.freeze <= 0){
+            this.body.splice(0, 0, nextPos());
+            this.increase < 1 ? this.body.pop() : this.increase--;
+        }
+
+        if(this.superSpeed) this.superSpeed--;
+        if(this.superSlow) this.superSlow--;
+        if(this.freeze) this.freeze--;
 
         this.senUpdate({body: this.body});
         
     }
 
+    // Get the next player position
     const nextPos = (steps = 1) => {
 
         let direction = this.directionMap[this.direction],
@@ -693,20 +797,6 @@ function Snake(game, props){
         else if(nextPos[axis] < 0) nextPos[axis] = gameProps.tiles[axis] - 1;
 
         return nextPos;
-
-    }
-
-    this.predictMovement = (direction, steps = 1) => {
-
-        var directionNow = this.direction;
-
-        this.direction = direction;
-
-        var _nextPos = nextPos(steps);
-
-        this.direction = directionNow;
-
-        return _nextPos;
 
     }
 
@@ -946,6 +1036,7 @@ io.on('connection', socket => {
 
     socket.on('disconnect', () => {
         if(socket.id == game.roomCreator){
+            game.status = 'toStart';
             game.roomCreator = undefined;
             game.playersInTheRoom.length = 0;
             game.clear();
@@ -957,6 +1048,9 @@ io.on('connection', socket => {
 
         if(game.roomCreator != socket.id && !game.multiplayerLocalAllow)
             return socket.emit('multiplayer disabled');
+
+        if(game.status == 'playing')
+            return socket.emit('is playing');
 
         let enhancerId = game.playersInTheRoom.length;
 
@@ -976,7 +1070,7 @@ io.on('connection', socket => {
         });
 
         game.playersInTheRoom.push(player);
-        socket.broadcast.emit('newPlayer', player);
+        socket.broadcast.emit('new player', player);
 
         socket.on('disconnect', () => {
             if(socket.id != game.roomCreator){
@@ -988,8 +1082,8 @@ io.on('connection', socket => {
 
         socket.on('change color', color => {
 
-            let colorsInUse = game.colorsInUse;
-            if(colorsInUse.includes(color)) return;
+            if(game.colorsInUse.includes(color))
+                return socket.emit('color in use');
 
             if(color >= 0 && color < gameProps.snakes.colors.length){
                 player.color = color;
@@ -1025,7 +1119,8 @@ io.on('connection', socket => {
             if(game.playersInTheRoom.length && game.multiplayerLocalAllow)
                 return;
 
-            if(game.colorsInUse.includes(data.color)) return;
+            if(game.colorsInUse.includes(data.color))
+                return socket.emit('color in use');
 
             let players = [];
 

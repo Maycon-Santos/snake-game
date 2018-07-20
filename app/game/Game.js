@@ -3,37 +3,43 @@
  */
 function Game(){
 
+    // Define properties
     var status = 'toStart';
 
     Object.defineProperties(this, {
 
-        players: { value: [], writable: false },
+        // Stores the players before sending for the engine to process
         playersInTheRoom: { value: [], writable: false },
+
+        // Players to be processed by engine
+        players: { value: [], writable: false },
+        
+        // Foods to be processed by the engine
         foods: { value: [], writable: false },
 
-        mode: { value: 'deathmatch' },
-
+        // Socket id of the room creator
         roomCreator: { writable: true },
 
-        multiplayerLocalAllow: { value: false },
+        multiplayerLocalAllow: { value: false, writable: true },
 
-        readyPlayers: { value: 0, enumerable: true },
+        // Players in the room who are ready to start
+        readyPlayers: { value: 0, writable: true },
 
+        // Colors in use by other users
         colorsInUse: {
             get: () => {
 
                 var colorsInUse = [];
 
-                for (let i = this.playersInTheRoom.length - 1; i >= 0; i--) {
-                    const player = this.playersInTheRoom[i];
-                    colorsInUse.push(player.color);
-                }
+                this.for('playersInTheRoom', player =>
+                    colorsInUse.push(player.color));
 
                 return colorsInUse;
 
             }
         },
 
+        // Get the winner of the match
         winner: {
 
             get: () => {
@@ -49,22 +55,28 @@ function Game(){
 
         },
 
+        // Status of the game "playing, game-over, etc..."
         status: {
 
             get: () => status,
 
-            set: st => {
+            set: newStatus => {
 
-                if(st == 'over') {
+                if(newStatus == 'over') {
 
-                    if(!this.multiplayerLocalAllow) game.playersInTheRoom.length = 1;
+                    // Clear if the player is alone
+                    if(!this.multiplayerLocalAllow)
+                        game.playersInTheRoom.length = 1;
 
+                    // Emit the winner
                     io.emit('game over', this.winner);
+
+                    // Clear the game engine
                     this.clear();
 
                 }
 
-                status = st;
+                status = newStatus;
 
             }
 
@@ -97,13 +109,16 @@ Game.prototype.start = function(){
     
     new GameRules(this);
 
+    // Add foods and players to engine
     this.addFoods();
     this.addPlayers();
 
+    // Set the status of the game
     this.status = "playing";
 
 }
 
+// Shortcut to loop with for
 Game.prototype.for = function(object, fn){
 
     if(typeof object == 'object'){
@@ -125,13 +140,8 @@ Game.prototype.for = function(object, fn){
 
 Game.prototype.addPlayers = function(){
 
-    for (let i = this.playersInTheRoom.length - 1; i >= 0 ; i--) {
-        const playerInTheRoom = this.playersInTheRoom[i];
-
-        let player = new Snake(this, playerInTheRoom);
-
-        this.players.push(player);
-    }
+    this.for('playersInTheRoom', player =>
+        this.players.push(new Snake(this, player)));
 
 }
 
@@ -144,14 +154,15 @@ Game.prototype.addFoods = function(){
 
 }
 
+// Get an unused color
 Game.prototype.generateColor = function(){
 
     var color = Math.round(Math.random() * (gameProps.snakes.colors.length - 1));
-    
     return this.colorsInUse.includes(color) ? this.generateColor() : color;
 
 }
 
+// Create players with A.I
 Game.prototype.createPlayers = function(qnt){
 
     let players = [];

@@ -4,16 +4,14 @@ function Interface(game){
 
         var get;
 
-        if(path2){
-            get = path.querySelectorAll(path2);
-        }else{
-            get = document.querySelectorAll(path);
-        }
+        if(path2) get = path.querySelectorAll(path2); // Get in path (Element)
+        else get = document.querySelectorAll(path); // Get in document
 
         return get.length > 1 ? get : get[0];
 
     }
 
+    // Get elements of the DOM
     const $interface     = $('#interface'),
           $modal         = $($interface, '.modal'),
           $loginForm     = $($interface, '#login form'),
@@ -25,7 +23,8 @@ function Interface(game){
           $welcomeText      = $($mainMenu, '#welcome'),
           $singlePlayer     = $($mainMenu, '#single-player'),
           $multiplayer      = $($mainMenu, '#multiplayer'),
-          $multiplayerLocal = $($mainMenu, '#multiplayer-local');
+          $multiplayerLocal = $($mainMenu, '#multiplayer-local'),
+          $tutorial         = $($mainMenu, '#tutorial');
 
     const $singlePlayerMenu        = $($interface, '#single-player-menu'),
           $singlePlayerSubmit      = $($singlePlayerMenu, '.submit'),
@@ -60,15 +59,17 @@ function Interface(game){
 
     new InputNumber();
 
+    // Get last nickname logged
     if(localStorage.getItem('lastNickname'))
         $inputNickname.value = localStorage.getItem('lastNickname');
 
     $inputNickname.focus();
 
-    this.openModal = () => $modal.classList.remove('closed');
-    this.closeModal = () => $modal.classList.add('closed');
-    this.open = what => $interface.className = what;
+    this.showModal = () => $modal.classList.remove('closed');
+    this.hideModal = () => $modal.classList.add('closed');
+    this.show = what => $interface.className = what;
 
+    // List the players who entered the room (before the game starts)
     this.listPlayersInTheRoom = () => {
 
         let lis = '';
@@ -91,62 +92,55 @@ function Interface(game){
 
     }
 
+    // List players in game (After start)
     this.listPlayersInGame = () => {
         
         let li = '';
 
-        game.for('playersInTheRoom', player =>
-            li += `<li style="color: ${snakeColor(player.color)};">${player.nickname}</li>`);
+        game.for('players', player =>
+            li += `<li class="${player.killed ? 'dead' : ''}" style="color: ${snakeColor(player.color)};">${player.nickname}</li>`);
 
         $nameOfPlayers.innerHTML = li;
 
     }
 
-    this.playerOnDeath = enhancerId => {
-
-        const list = $($nameOfPlayers, 'li');
-        list[enhancerId].className = 'dead';
-
-    }
-
+    // Show the game-over screen
     this.gameOver = () => {
 
         $gameOverText.style.color = game.winner ? snakeColor(game.winner.color) : 'inherit';
         $gameOverText.innerText = game.winner ? game.winner.nickname : 'Nobody';
 
-        this.open('game-over');
+        this.show('game-over');
 
     }
 
-    const gameOverSubmit = (open, moreFn) => {
+    /**
+     * Standard functions that occur when you click the game over button
+     * 
+     * @param {*} show : What will be shown after the click
+     * @param {*} moreFn : Extra function (Like a callback)
+     */
+    const gameOverSubmit = (show, moreFn) => {
 
         $gameOverSubmit.onclick = () => {
             game.status = 'toStart';
             game.clear();
-            this.openModal();
-            this.open(open);
+            this.showModal();
+            this.show(show);
             game.sounds.menu.play;
             typeof moreFn == 'function' && moreFn();
         }
 
     }
 
-    [$singlePlayer, $multiplayer, $multiplayerLocal, $submitChooser].map($el =>
-        $el.addEventListener('click', () => game.sounds.menu.play));
-
-    [$backSinglePlayerMenu, $backMultiplayerMenu, $backMultiplayerLocalMenu].map($el =>
-        $el.addEventListener('click', () => game.sounds.back.play));
-
-    [$singlePlayerSubmit, $multiplayerSubmit, $multiplayerLocalMenuSubmit].map($el =>
-        $el.addEventListener('click', () => game.sounds.enter.play));
-
+    // Login event
     $loginForm.addEventListener('submit', e => {
         game.login($inputNickname.value, data => {
 
             $welcomeText.innerHTML = `Hi, ${$inputNickname.value}`;
             snakeChooser.changeSnakeColor();
 
-            this.open('after-login');
+            this.show('after-login');
 
             localStorage.setItem('lastNickname', $inputNickname.value);
 
@@ -155,23 +149,87 @@ function Interface(game){
         });
     });
 
-    $singlePlayer.addEventListener('click', e =>
-        this.open('single-player-menu'));
+    { // Single player
+        $singlePlayer.addEventListener('click', e =>
+            this.show('single-player-menu'));
 
-    $singlePlayerSubmit.addEventListener('click', () => {
+        $singlePlayerSubmit.addEventListener('click', () => {
 
-        game.socket.emit('prepare single-player', $singlePlayer_playersQtn.getAttribute('data-value'));
-        gameOverSubmit('single-player-menu', () => game.playersInTheRoom.length = 1);
+            game.socket.emit('prepare single-player', $singlePlayer_playersQtn.getAttribute('data-value'));
+            gameOverSubmit('single-player-menu', () => game.playersInTheRoom.length = 1);
 
-    });
+        });
 
-    $backSinglePlayerMenu.addEventListener('click', () => this.open('main-menu'));
+        $backSinglePlayerMenu.addEventListener('click', () => this.show('main-menu'));
+    }
+
+    { // Multiplayer
+
+        $multiplayer.addEventListener('click', () => {
+
+            snakeChooser.currentColor = 0;
+            snakeChooser.changeSnakeColor();
+            this.show('multiplayer-menu');
+
+        });
+
+        $multiplayerSubmit.addEventListener('click', () => {
+
+            game.playersInTheRoom = [game.playersInTheRoom[0]];
+
+            game.socket.emit('prepare multiplayer', {
+                nickname: $player2Name.value,
+                color: snakeChooser.currentColor,
+                nPlayers: $multiplayer_playersQtn.getAttribute('data-value')
+            });
+
+            gameOverSubmit('multiplayer-menu', () => game.playersInTheRoom.length = 1);
+
+        });
+
+        $backMultiplayerMenu.addEventListener('click', () => this.show('main-menu'));
+
+    }
+
+    { // Multiplayer-local
+
+        $multiplayerLocal.addEventListener('click', () => {
+
+            game.multiplayerLocalAllow = true;
+            game.socket.emit('multiplayer-local allow');
+            $multiplayerLocalMenuSubmit.removeAttribute('disabled');
+
+        });
+
+        this.openMultiplayerLocal = adress => {
+
+            $address.innerText = adress;
+            this.show('multiplayer-local-menu');
+
+        }
+
+        $multiplayerLocalMenuSubmit.addEventListener('click', () => {
+            
+            $multiplayerLocalMenuSubmit.setAttribute('disabled', true);
+            game.socket.emit('ready');
+            
+            gameOverSubmit('multiplayer-local-menu', () => $multiplayerLocalMenuSubmit.removeAttribute('disabled'));
+
+        });
+
+        $backMultiplayerLocalMenu.addEventListener('click', () => {
+
+            game.playersInTheRoom.length = 1;
+            game.socket.emit('multiplayer-local deny');
+            this.show('main-menu');
+
+        });
+
+    }
+
+    $tutorial.addEventListener('click', () => this.show('tutorial-screen'))
 
     $submitChooser.addEventListener('click', () => {
-
-        const colorsInUse = game.colorsInUse;
-        if(colorsInUse.includes(snakeChooser.currentColor))
-            return this.dialogBox.alert('Denied', 'This color is being used.');
 
         game.socket.emit('change color', snakeChooser.currentColor);
 
@@ -180,73 +238,26 @@ function Interface(game){
             this.listPlayersInTheRoom();
             $multiplayerLocalMenu.className = 'multiplayer-local-viewer';
             $($multiplayerLocalMenu, ('h4')).innerText = 'Waiting to play ...';
-            this.open('multiplayer-local-menu');
+            this.show('multiplayer-local-menu');
 
-        }else this.open('main-menu');
-
-    });
-
-    $multiplayer.addEventListener('click', () => {
-
-        snakeChooser.currentColor = 0;
-        snakeChooser.changeSnakeColor();
-        this.open('multiplayer-menu');
+        }else this.show('main-menu');
 
     });
 
-    $multiplayerSubmit.addEventListener('click', () => {
+    { // Audio
 
-        game.playersInTheRoom = [game.playersInTheRoom[0]];
+        this.audioToggle = mute => $audioToggle.className = mute ? 'muted' : '';
+        $audioToggle.addEventListener('click', () => game.mute = !game.mute);
 
-        var colorsInUse = game.colorsInUse;
-        if(colorsInUse.includes(snakeChooser.currentColor))
-            return this.dialogBox.alert('Denied', 'This color is being used.');
+        // Set sounds
+        [$singlePlayer, $multiplayer, $multiplayerLocal, $submitChooser].map($el =>
+            $el.addEventListener('click', () => game.sounds.menu.play));
 
-        game.socket.emit('prepare multiplayer', {
-            nickname: $player2Name.value,
-            color: snakeChooser.currentColor,
-            nPlayers: $multiplayer_playersQtn.getAttribute('data-value')
-        });
+        [$backSinglePlayerMenu, $backMultiplayerMenu, $backMultiplayerLocalMenu].map($el =>
+            $el.addEventListener('click', () => game.sounds.back.play));
 
-        gameOverSubmit('multiplayer-menu', () => game.playersInTheRoom.length = 1);
-
-    });
-
-    $backMultiplayerMenu.addEventListener('click', () => this.open('main-menu'));
-
-    $multiplayerLocal.addEventListener('click', () => {
-
-        game.multiplayerLocalAllow = true;
-        game.socket.emit('multiplayer-local allow');
-        $multiplayerLocalMenuSubmit.removeAttribute('disabled');
-
-    });
-
-    this.openMultiplayerLocal = adress => {
-
-        $address.innerText = adress;
-        this.open('multiplayer-local-menu');
+        [$singlePlayerSubmit, $multiplayerSubmit, $multiplayerLocalMenuSubmit].map($el =>
+            $el.addEventListener('click', () => game.sounds.enter.play));
 
     }
-
-    $multiplayerLocalMenuSubmit.addEventListener('click', () => {
-        
-        $multiplayerLocalMenuSubmit.setAttribute('disabled', true);
-        game.socket.emit('ready');
-        
-        gameOverSubmit('multiplayer-local-menu', () => $multiplayerLocalMenuSubmit.removeAttribute('disabled'));
-
-    });
-
-    $backMultiplayerLocalMenu.addEventListener('click', () => {
-
-        game.playersInTheRoom.length = 1;
-        game.socket.emit('multiplayer-local deny');
-        this.open('main-menu');
-
-    });
-
-    this.audioToggle = mute => $audioToggle.className = mute ? 'muted' : '';
-    $audioToggle.addEventListener('click', () => game.mute = !game.mute);
-
 }

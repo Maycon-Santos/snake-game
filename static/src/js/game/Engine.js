@@ -1,50 +1,33 @@
 function Engine(game){
 
-    var canvas = game.ctx.canvas;
+    var $canvas = game.ctx.canvas;
 
+    // Elements to render
     var objects = [];
 
-    const runFunction = (fn, ...args) => {
+    this.draw = () => {
+
+        // Clear the canvas
+        game.ctx.clearRect(0, 0, $canvas.width, $canvas.height);
 
         var i = objects.length;
 
         while(i--){
-            if(typeof objects[i][fn] == 'function') objects[i][fn](...args);
+            // Draw/Render elements
+            if(typeof objects[i]['draw'] == 'function') objects[i]['draw']();
         }
-
-    }
-
-    const draw = () => {
-        game.ctx.clearRect(0, 0, canvas.width, canvas.height);
-        runFunction('draw');
-    }
-
-
-    this.run = () => {
-
-        // let engine = this,
-        //     start = performance.now();
-
-        requestAnimationFrame(function run(){
-
-            // let deltaTime = (timestamp - start) / 1000;
-            // deltaTime = Math.min(1, deltaTime);
-
-            draw();
-
-            // if(deltaTime >= 1) return engine.run();
-            requestAnimationFrame(run);
-
-        }.bind(this));
 
     }
 
     this.add = (object) => {
+
         objects.push(object);
         
         object.update = _object => {
             for (const key in _object) object[key] = _object[key];
+            requestAnimationFrame(this.draw);
         }
+        
     }
 
     this.clear = () => objects = [];

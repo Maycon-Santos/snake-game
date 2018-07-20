@@ -1,14 +1,23 @@
 function Snake(game, props){
 
+    // Socket id of the player
     this.id = null;
+
     this.enhancerId = null;
+
     this.body = [];
 
-    this.increase = 0;
+    // Powerups
+    this.increase = 0; // Number the snake will grow
+    this.superSpeed = 0;
+    this.superSlow = 0;
+    this.freeze = 0;
+
     this.collided = false;
 
     this.bodyStart = [0, 0];
 
+    // If the snake is going to have A.I
     this.AI = false;
 
     this.merge(props);
@@ -150,36 +159,54 @@ function Snake(game, props){
         }
     });
 
+    // Function responsible for sending the processed data to the client
     this.senUpdate = update =>
         game.engine.sendUpdate('players', this.enhancerId, update);
 
     game.engine.add(this);
+
+    // Get movements by controlls of the client
     const snakeControls = new SnakeControls(this, game);
 
+    // Create a new body
     this.newBody();
 
+    // Insert snake A.I
     if(this.AI) this.AI = new snakeAI(game, this);
 
-    var progressMove = 0;
+    var progressed = 0;
     const movement = (deltaTime) => {
 
         let speed = gameProps.snakes.speed;
+
+        if(this.superSpeed > 0) speed *= 1.4;
+        if(this.superSlow > 0) speed *= 0.5;
+
         let progress = deltaTime * speed;
-    
-        if(~~progress <= ~~progressMove) return;
+
+        if(progressed > progress) progressed = 0;
+
+        if(~~progress <= ~~progressed) return;
 
         if(this.AI) this.AI.movement();
         else snakeControls.currentMovement();
 
-        progressMove = progress != speed ? progress : 0;
+        progressed = progress >= speed ? 0 : progress;
         
-        this.body.splice(0, 0, nextPos());
-        this.increase < 1 ? this.body.pop() : this.increase--;
+        if(this.freeze <= 0){
+            this.body.splice(0, 0, nextPos());
+            this.increase < 1 ? this.body.pop() : this.increase--;
+        }
+
+        if(this.superSpeed) this.superSpeed--;
+        if(this.superSlow) this.superSlow--;
+        if(this.freeze) this.freeze--;
 
         this.senUpdate({body: this.body});
         
     }
 
+    // Get the next player position
     const nextPos = (steps = 1) => {
 
         let direction = this.directionMap[this.direction],
@@ -192,20 +219,6 @@ function Snake(game, props){
         else if(nextPos[axis] < 0) nextPos[axis] = gameProps.tiles[axis] - 1;
 
         return nextPos;
-
-    }
-
-    this.predictMovement = (direction, steps = 1) => {
-
-        var directionNow = this.direction;
-
-        this.direction = direction;
-
-        var _nextPos = nextPos(steps);
-
-        this.direction = directionNow;
-
-        return _nextPos;
 
     }
 

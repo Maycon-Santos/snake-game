@@ -27,23 +27,43 @@ var gameProps = {
     },
 
     foods: {
-        qnt: 8,
+        qnt: 1,
 
         types: {
             normal: {
-                chance: 5,
+                chance: 30,
                 color: '#FFE400'
             },
 
-            freezer: {
-                chance: 0,
-                color: '#008F30'
+            superSlow: {
+                chance: 3,
+                color: '#af3907',
+                powerup: 'super slow'
             },
 
             superSpeed: {
+                chance: 3,
+                color: '#0f8660',
+                powerup: 'super speed'
+            },
+
+            superIncrease: {
+                chance: 3,
+                color: '#29002d',
+                powerup: 'super increase'
+            },
+            
+            freeze: {
                 chance: 0,
-                color: '#008F30'
+                color: '#076f96',
+                powerup: 'freeze'
+            },
+
+            invisible: {
+                chance: 0,
+                color: '#a607af'
             }
+
         }
 
     }

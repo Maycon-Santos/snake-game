@@ -1,19 +1,19 @@
 function Engine(){
 
+    // Elements to process
     var objects = [],
+    // Elements processed
         updates = {};
 
-    const runFunction = (fn, ...args) => {
+    const update = (deltaTime) => {
 
         var i = objects.length;
 
         while(i--){
-            if(typeof objects[i][fn] == 'function') objects[i][fn](...args);
+            if(typeof objects[i]['update'] == 'function') objects[i]['update'](deltaTime);
         }
 
     }
-
-    const update = (deltaTime) => runFunction('update', deltaTime);
 
     const sendUpdate = () => {
         if(Object.keys(updates).length){

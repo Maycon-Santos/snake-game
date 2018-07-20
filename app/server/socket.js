@@ -1,4 +1,4 @@
-//=require game/*.js
+//=require game/**/*.js
 
 io.on('connection', socket => {
 
@@ -6,6 +6,7 @@ io.on('connection', socket => {
 
     socket.on('disconnect', () => {
         if(socket.id == game.roomCreator){
+            game.status = 'toStart';
             game.roomCreator = undefined;
             game.playersInTheRoom.length = 0;
             game.clear();
@@ -17,6 +18,9 @@ io.on('connection', socket => {
 
         if(game.roomCreator != socket.id && !game.multiplayerLocalAllow)
             return socket.emit('multiplayer disabled');
+
+        if(game.status == 'playing')
+            return socket.emit('is playing');
 
         let enhancerId = game.playersInTheRoom.length;
 
@@ -36,7 +40,7 @@ io.on('connection', socket => {
         });
 
         game.playersInTheRoom.push(player);
-        socket.broadcast.emit('newPlayer', player);
+        socket.broadcast.emit('new player', player);
 
         socket.on('disconnect', () => {
             if(socket.id != game.roomCreator){
@@ -48,8 +52,8 @@ io.on('connection', socket => {
 
         socket.on('change color', color => {
 
-            let colorsInUse = game.colorsInUse;
-            if(colorsInUse.includes(color)) return;
+            if(game.colorsInUse.includes(color))
+                return socket.emit('color in use');
 
             if(color >= 0 && color < gameProps.snakes.colors.length){
                 player.color = color;
@@ -85,7 +89,8 @@ io.on('connection', socket => {
             if(game.playersInTheRoom.length && game.multiplayerLocalAllow)
                 return;
 
-            if(game.colorsInUse.includes(data.color)) return;
+            if(game.colorsInUse.includes(data.color))
+                return socket.emit('color in use');
 
             let players = [];
 
