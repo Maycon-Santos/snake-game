@@ -63,13 +63,10 @@ function GameRules(game){
         snakeColision();
 
         game.for('players', player => {
-            if(player.killed) return;
-            player.killed = player.collided; // Kill the player if collided
-            if(player.killed) this.deathCounter++;
+            if(!player || player.killed) return;
+             // Kill the player if collided
+            player.killed = player.collided;
         });
-
-        if(this.deathCounter >= game.players.length - 1)
-            game.status = 'over';
 
         snakeAteFood();
 

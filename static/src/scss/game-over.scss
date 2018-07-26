@@ -2,6 +2,7 @@
     #interface{
         &:not(.game-over) #game-over{ display: none !important; }
         #game-over{
+            margin: auto;
             color: lighten($green-003, 7%);
             text-align: center;
 

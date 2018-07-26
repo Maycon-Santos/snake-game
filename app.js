@@ -86,8 +86,10 @@ var mainWindow;
 electron.app.on('ready', () => {
 
     mainWindow = new electron.BrowserWindow({
-        width: 1024,
-        height: 720
+        width: 800,
+        height: 480,
+        // minWidth: 1024,
+        // minHeight: 720
     });
 
     mainWindow.setMenuBarVisibility(false);
@@ -208,7 +210,8 @@ function Food(game, id){
 function Game(){
 
     // Define properties
-    var status = 'toStart';
+    var status = 'toStart',
+        gameRules;
 
     Object.defineProperties(this, {
 
@@ -275,6 +278,9 @@ function Game(){
                     // Emit the winner
                     io.emit('game over', this.winner);
 
+                    this.clear();
+                    this.gameRules.close();
+
                     // Clear the game engine
                     this.clear();
 
@@ -284,6 +290,16 @@ function Game(){
 
             }
 
+        },
+
+        gameRules: {
+            value: {
+                get take(){ return gameRules; },
+                init: () => gameRules = new GameRules(this),
+                close: () => gameRules = undefined
+            },
+
+            writable: false
         }
 
     });
@@ -309,9 +325,7 @@ Game.prototype.clear = function(){
 
 Game.prototype.start = function(){
 
-    this.clear();
-    
-    new GameRules(this);
+    this.gameRules.init();
 
     // Add foods and players to engine
     this.addFoods();
@@ -528,13 +542,10 @@ function GameRules(game){
         snakeColision();
 
         game.for('players', player => {
-            if(player.killed) return;
-            player.killed = player.collided; // Kill the player if collided
-            if(player.killed) this.deathCounter++;
+            if(!player || player.killed) return;
+             // Kill the player if collided
+            player.killed = player.collided;
         });
-
-        if(this.deathCounter >= game.players.length - 1)
-            game.status = 'over';
 
         snakeAteFood();
 
@@ -660,7 +671,13 @@ function Snake(game, props){
         set: (Bool) => {
             if(Bool != killed){
                 killed = !!Bool;
+
                 this.senUpdate({killed: killed});
+
+                if(killed) game.gameRules.take.deathCounter++;
+
+                if(game.gameRules.take.deathCounter >= game.players.length - 1)
+                    game.status = 'over';
             }
         }
     });
@@ -1074,9 +1091,11 @@ io.on('connection', socket => {
 
         socket.on('disconnect', () => {
             if(socket.id != game.roomCreator){
-                delete game.playersInTheRoom[enhancerId];
-                game.playersInTheRoom = game.playersInTheRoom.filter(Boolean);
+                game.playersInTheRoom.splice(enhancerId, 1);
                 io.emit('delete player', enhancerId);
+                if(game.status == 'playing'){
+                    game.players[enhancerId].killed = true;
+                }
             }
         });
 
@@ -1084,6 +1103,7 @@ io.on('connection', socket => {
 
             if(game.colorsInUse.includes(color))
                 return socket.emit('color in use');
+            else socket.emit('color not in use');
 
             if(color >= 0 && color < gameProps.snakes.colors.length){
                 player.color = color;
@@ -1168,6 +1188,7 @@ io.on('connection', socket => {
 
         socket.on('ready', () => {
 
+            if(game.readyPlayers < 0) game.readyPlayers = 0;
             game.readyPlayers++;
 
             if(game.readyPlayers == game.playersInTheRoom.length && game.playersInTheRoom.length > 1){

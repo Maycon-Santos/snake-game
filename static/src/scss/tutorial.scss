@@ -3,26 +3,30 @@
         &:not(.tutorial-screen) #tutorial-screen{ display: none !important; }
         #tutorial-screen{
             display: flex;
-            justify-content: space-between;
-            flex-wrap: wrap;
+            flex-direction: column;
 
             color: $green-003;
 
             .back{ width: 100%; margin-bottom: 10px; }
 
             > div{
-                width: calc(50% - 10px);
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: space-between;
+                
+                + div{
+                    margin-top: 20px;
+                }
 
                 > div{
-                    + div{
-                        margin-top: 20px;
-                    }
+                    width: calc(50% - 10px);
                 }
             }
 
             h2{
+                display: block;
+                width: 100%;
                 font-size: 1.3rem;
-                text-align: center;
                 margin-bottom: 20px;
             }
 
@@ -30,6 +34,7 @@
                 font-size: 1rem;
             }
 
+            // Food types
             ul{
                 list-style: none;
 

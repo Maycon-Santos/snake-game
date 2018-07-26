@@ -1,12 +1,10 @@
 #game{
     #interface{
-        position: fixed;
+        position: absolute;
         left: 0;
         top: 0;
 
         display: flex;
-        justify-content: center;
-        align-items: center;
         width: 100%;
         height: 100%;
 
@@ -16,6 +14,7 @@
 
         .modal{
             width: 300px;
+            margin: auto;
             &.closed{ display: none;}
 
             > header{
@@ -95,6 +94,26 @@
                     }
                     100%{
                         transform: translateX(0);
+                    }
+                }
+            }
+        }
+    }
+}
+
+@media (max-width: 800px){
+    #game{
+        #interface{
+            .modal{
+                padding: 40px 0;
+
+                > footer{
+                    position: fixed;
+                    bottom: 10px;
+                    left: 10px;
+
+                    > span{
+                        margin-right: 10px;
                     }
                 }
             }

@@ -44,9 +44,11 @@ io.on('connection', socket => {
 
         socket.on('disconnect', () => {
             if(socket.id != game.roomCreator){
-                delete game.playersInTheRoom[enhancerId];
-                game.playersInTheRoom = game.playersInTheRoom.filter(Boolean);
+                game.playersInTheRoom.splice(enhancerId, 1);
                 io.emit('delete player', enhancerId);
+                if(game.status == 'playing'){
+                    game.players[enhancerId].killed = true;
+                }
             }
         });
 
@@ -54,6 +56,7 @@ io.on('connection', socket => {
 
             if(game.colorsInUse.includes(color))
                 return socket.emit('color in use');
+            else socket.emit('color not in use');
 
             if(color >= 0 && color < gameProps.snakes.colors.length){
                 player.color = color;
@@ -138,6 +141,7 @@ io.on('connection', socket => {
 
         socket.on('ready', () => {
 
+            if(game.readyPlayers < 0) game.readyPlayers = 0;
             game.readyPlayers++;
 
             if(game.readyPlayers == game.playersInTheRoom.length && game.playersInTheRoom.length > 1){

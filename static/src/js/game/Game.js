@@ -311,7 +311,7 @@ Game.prototype.socketEvents = function(){
 
         this.playersInTheRoom.clear();
         this.clear();
-        this.interface.open('login');
+        this.interface.show('login');
 
         this.socket.emit('logout');
 

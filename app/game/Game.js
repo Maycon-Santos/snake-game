@@ -4,7 +4,8 @@
 function Game(){
 
     // Define properties
-    var status = 'toStart';
+    var status = 'toStart',
+        gameRules;
 
     Object.defineProperties(this, {
 
@@ -71,6 +72,9 @@ function Game(){
                     // Emit the winner
                     io.emit('game over', this.winner);
 
+                    this.clear();
+                    this.gameRules.close();
+
                     // Clear the game engine
                     this.clear();
 
@@ -80,6 +84,16 @@ function Game(){
 
             }
 
+        },
+
+        gameRules: {
+            value: {
+                get take(){ return gameRules; },
+                init: () => gameRules = new GameRules(this),
+                close: () => gameRules = undefined
+            },
+
+            writable: false
         }
 
     });
@@ -105,9 +119,7 @@ Game.prototype.clear = function(){
 
 Game.prototype.start = function(){
 
-    this.clear();
-    
-    new GameRules(this);
+    this.gameRules.init();
 
     // Add foods and players to engine
     this.addFoods();

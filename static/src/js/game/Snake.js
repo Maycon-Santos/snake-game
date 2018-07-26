@@ -17,11 +17,10 @@ function Snake(game, props){
     Object.defineProperty(this, 'killed', {
         get: () => killed,
         set: Bool => {
-            if(Bool){
+            if(killed = Bool){
                 game.sounds.died.play;
                 game.interface.listPlayersInGame();
             }
-            killed = Bool;
         }
     })
 

@@ -82,7 +82,13 @@ function Snake(game, props){
         set: (Bool) => {
             if(Bool != killed){
                 killed = !!Bool;
+
                 this.senUpdate({killed: killed});
+
+                if(killed) game.gameRules.take.deathCounter++;
+
+                if(game.gameRules.take.deathCounter >= game.players.length - 1)
+                    game.status = 'over';
             }
         }
     });

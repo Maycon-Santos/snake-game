@@ -392,7 +392,7 @@ Game.prototype.socketEvents = function(){
 
         this.playersInTheRoom.clear();
         this.clear();
-        this.interface.open('login');
+        this.interface.show('login');
 
         this.socket.emit('logout');
 
@@ -519,7 +519,10 @@ function Interface(game){
           $playerCounter              = $($multiplayerLocalMenu, '.player-counter span'),
           $address                    = $($multiplayerLocalMenu, '.address'),
           $backMultiplayerLocalMenu   = $($multiplayerLocalMenu, '.back');
-        
+    
+    const $tutorialScreen = $('#tutorial-screen'),
+          $tutorialBack = $($tutorialScreen, '.back');
+    
     const $gameOver       = $($interface, '#game-over'),
           $gameOverText   = $($gameOver, 'h2 span'),
           $gameOverSubmit = $($gameOver, '.submit');
@@ -703,20 +706,29 @@ function Interface(game){
 
     }
 
-    $tutorial.addEventListener('click', () => this.show('tutorial-screen'))
+    $tutorial.addEventListener('click', () => this.show('tutorial-screen'));
+    $tutorialBack.addEventListener('click', () => this.show('main-menu'));
 
-    $submitChooser.addEventListener('click', () => {
+    $submitChooser.addEventListener('click', () =>{
 
         game.socket.emit('change color', snakeChooser.currentColor);
 
-        if(game.multiplayerLocalAllow){
+        game.socket.on('color not in use', () => {
 
-            this.listPlayersInTheRoom();
-            $multiplayerLocalMenu.className = 'multiplayer-local-viewer';
-            $($multiplayerLocalMenu, ('h4')).innerText = 'Waiting to play ...';
-            this.show('multiplayer-local-menu');
-
-        }else this.show('main-menu');
+            game.socket.off('color not in use');
+    
+            // if other player enter
+            if(game.multiplayerLocalAllow){
+    
+                this.listPlayersInTheRoom();
+                $multiplayerLocalMenu.className = 'multiplayer-local-viewer';
+                $($multiplayerLocalMenu, ('h4')).innerText = 'Waiting to play ...';
+                this.show('multiplayer-local-menu');
+    
+            // If room creator enter
+            }else this.show('main-menu');
+    
+        });
 
     });
 
@@ -756,11 +768,10 @@ function Snake(game, props){
     Object.defineProperty(this, 'killed', {
         get: () => killed,
         set: Bool => {
-            if(Bool){
+            if(killed = Bool){
                 game.sounds.died.play;
                 game.interface.listPlayersInGame();
             }
-            killed = Bool;
         }
     })
 
