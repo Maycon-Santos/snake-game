@@ -2,8 +2,8 @@ var gameProps = {
     tiles: [64, 36], // X, Y
 
     snakes: {
-        speed: 20,
-        initialSize: 3,
+        speed: 15,
+        initialSize: 1,
         initialDirection: "right",
         reverse: false,
         sensibilityTouch: 30, // the higher, the less sensitive

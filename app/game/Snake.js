@@ -37,7 +37,7 @@ function Snake(game, props){
     var direction = gameProps.snakes.initialDirection;
     Object.defineProperty(this, 'direction', {
         get: () => direction,
-        set: (to) => {
+        set: to => {
 
             let directions = Object.keys(this.directionMap),
                 oldDirection = direction,

@@ -265,7 +265,7 @@ Game.prototype.resizeCanvas = function(){
 
 
     var $snakes = document.querySelectorAll('.snake-chooser .snake');
-    const chooseSnake_snakeSize = () => {
+    const chooseSnakeSize = () => {
         for (let i = $snakes.length - 1; i >= 0; i--) {
             $snakes[i].style.width = `${this.tileSize}px`;
             $snakes[i].style.height = `${this.tileSize}px`;
@@ -278,7 +278,7 @@ Game.prototype.resizeCanvas = function(){
         let tileSize = [0, 0].map((_, i) => winSize[i] / gameProps.tiles[i]);
         this.tileSize = tileSize[tileSize[0] > tileSize[1] ? 1 : 0];
 
-        chooseSnake_snakeSize();
+        chooseSnakeSize();
         
     }
 

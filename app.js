@@ -410,8 +410,8 @@ var gameProps = {
     tiles: [64, 36], // X, Y
 
     snakes: {
-        speed: 20,
-        initialSize: 3,
+        speed: 15,
+        initialSize: 1,
         initialDirection: "right",
         reverse: false,
         sensibilityTouch: 30, // the higher, the less sensitive
@@ -552,7 +552,23 @@ function GameRules(game){
     }
 
 }
-const newBodyStart = id => [5 * (id+1), 5 * (id+1), 'down'];
+const newBodyStart = id =>{
+
+    id++;
+
+    // Reset the "counter" to every 3 numbers (4 = 1, 7 = 1, 8 = 2 ...)
+    // Ex: (4 / 3.0001) = 1.3332888903703208
+    //     (1.333288... % 1) = 0.333288...
+    //     (0.333288... * 3) = 0.99986667...
+    //     Math.round(0.99986667...) = 1
+    let xMultiplier = Math.round(((id / 3.0001) % 1) * 3),
+        yMultiplier = Math.ceil(id / 3);
+
+    io.emit('teste', xMultiplier);
+
+    return [16 * xMultiplier, 9 * yMultiplier, 'down'];
+
+}
 const powerups = new function(){
 
     this.set = (powerupName, func) =>
@@ -626,7 +642,7 @@ function Snake(game, props){
     var direction = gameProps.snakes.initialDirection;
     Object.defineProperty(this, 'direction', {
         get: () => direction,
-        set: (to) => {
+        set: to => {
 
             let directions = Object.keys(this.directionMap),
                 oldDirection = direction,
@@ -875,27 +891,6 @@ function snakeAI(game, snake){
 
     const selectFood = () => {
 
-        /* var lastFood, selectedFood;
-
-        game.for('foods', food => {
-
-            if(!lastFood) return selectedFood = lastFood = food;
-
-            let distance = food.position.sumAll() - snake.head.sumAll(),
-                lastFoodDistance = lastFood.position.sumAll() - snake.head.sumAll();
-
-            if(Math.abs(distance) < Math.abs(lastFoodDistance)){
-                selectedFood = food;
-            }
-
-            lastFood = food;
-
-        });
-
-        return selectedFood; */
-
-        // ============================================
-
         let foods = game.foods,
             selectedFood = foods[Math.round(Math.random() * (foods.length - 1))];
 
@@ -914,111 +909,128 @@ function snakeAI(game, snake){
 
     });
 
-    Object.defineProperty(this, 'hazardousAreas', {
-        get: () => {
+    const hazardousDirections = () => {
+        
+        const directions = [],
+              enhancerId = snake.enhancerId,
+              head = snake.head;
+        
+        game.for('players', (player, PlayerEnhancerId) =>
+            (player.killed || enhancerId == PlayerEnhancerId) ? null :
 
-            var areas = [],
-                myHead = snake.head;
+            game.for(player.body, bodyFrag => game.for(bodyFrag, (_, axis) => {
 
-            game.for('players', player => {
+                const otherAxis = (axis == 1) ? 0 : 1;
 
-                if(player.killed || player.enhancerId == snake.enhancerId) return;
+                if(!bodyFrag[axis].isEqual(head[axis])) return;
 
-                game.for(player.body, bodyFragment => {
-                    
-                    game.for(bodyFragment, (_, axis) => {
+                const distance = head[otherAxis] - bodyFrag[otherAxis],
+                      distanceABS = Math.abs(distance);
 
-                        let otherAxis = Math.abs(axis - 1);
+                if(distanceABS <= 5){
 
-                        if(bodyFragment[axis].isEqual(myHead[axis], myHead[otherAxis] - 1, myHead[otherAxis] + 1)){
+                    const dir = distance / distanceABS,
+                          direction = -(dir) * (otherAxis + 1);
+                          
+                    directions.push(snake.directionMap[direction]);
 
-                            let distance = myHead[otherAxis] - bodyFragment[otherAxis],
-                                distanceABS = Math.abs(distance);
+                }
 
-                            if(distanceABS <= 3){
+            }))
 
-                                let dir = distance / distanceABS,
-                                    direction = snake.directionMap[-(dir) * (otherAxis + 1)];
+        );
 
-                                areas.push(direction);
+        return directions.concat(snake.verticesDirections);
+        
+    }
 
-                            }
-                            
-                        }
+    const movimentsToGetFood = () => {
 
-                    })
+        const movements = ['left', 'right', 'up', 'down'],
+              toReturn = [],
+              head = snake.head,
+              foodPos = food.position,
+              dontMoveTo = hazardousDirections();
 
-                });
+        game.for(foodPos, (pos, axis) => {
 
-            });
+            let movIndex = axis;
 
-            return areas;
+            // 1 = right or down
+            if(foodPos[axis] > head[axis]) movIndex++;
 
-        }
-    });
+            // Remove and get movement of the array
+            const movement = movements.splice(movIndex, 1)[0];
 
-    Object.defineProperty(this, 'movementsByPriority', {
-        get: () => {
+            // If axis equals 1 the "movements" looks like this: ['left', 'up', 'down']
+            // So, if in the next loop the axis equals 2 the movements looks like this: ['left', 'up']
+            // These moves should be the last ones the snake will think of doing
 
-            let movements = ['left', 'right', 'up', 'down'],
-                movementsByPriority = [],
-                head = snake.head,
-                hazardousAreas = this.hazardousAreas;
+            // If it is a dangerous move, you should be the last to think about doing it
+            if(dontMoveTo.includes(movement) || foodPos[axis] == head[axis]) movements.push(movement);
+            else toReturn.push(movement);
 
-            game.for(food.position, (pos, axis) => {
+        });
 
-                let movIndex = axis;
+        return toReturn.concat(movements.shuffle());
 
-                if(pos > head[axis]) movIndex++;
+    }
 
-                let movement = movements.splice(movIndex, 1)[0];
+    const movesToScape = (moves, dontMoveTo) => {
 
-                if(hazardousAreas.includes(movement) || pos == head[axis])
-                    movements.push(movement);
-                else
-                    movementsByPriority.push(movement);
+        const toReturn = [];
+        
+        game.for(moves, move => {
 
-            });
+            if(!dontMoveTo.includes(move))
+                toReturn.push(move);
 
-            if(preferredAxis == undefined)
-                preferredAxis = Math.round(Math.random());
+        });
 
-            let snakeDirection = snake.direction;
+        return toReturn;
 
-            if((snakeDirection == 'right' && movementsByPriority[0] == 'left')
-               || (snakeDirection == 'left' && movementsByPriority[0] == 'right')
-               || (snakeDirection == 'up' && movementsByPriority[0] == 'down')
-               || (snakeDirection == 'down' && movementsByPriority[0] == 'up'))
-                    movementsByPriority.reverse();
+    }
 
-            if(preferredAxis == 1) movementsByPriority.reverse();
-
-            return [...movementsByPriority, ...movements.shuffle()];
-
-        }
-    });
+    const axis = moviment => {
+        if(moviment == 'left' || moviment == 'right') return 'horizontal';
+        else return 'vertical';
+    }
 
     this.movement = () => {
 
-        let movements = this.movementsByPriority,
-            hazardousAreas = this.hazardousAreas,
+        let head = snake.head,
+            movements = movesToScape(movimentsToGetFood(), hazardousDirections()),
             verticesDirections = snake.verticesDirections;
 
-        let selectedMovement;
+        if(preferredAxis == undefined)
+            preferredAxis = Math.round(Math.random());
+
+        game.for(food.position, (_, axis) => {
+
+            if(food.position[axis] == head[axis] && preferredAxis == axis)
+                preferredAxis = (preferredAxis == 1) ? 0 : 1;
+
+        });
 
         for(let i = 0, L = movements.length; i < L; i++){
             const movement = movements[i];
 
-            if(!movement) continue;
-            
-            if(!hazardousAreas.includes(movement) && !verticesDirections.includes(movement)){
-                selectedMovement = movement;
-                break;
-            }
+            if(verticesDirections.includes(movement))
+                movements.slice(i, 1);
 
         }
 
-        snake.direction = selectedMovement;
+        if(movements.length >= 2){
+
+            if(axis(movements[preferredAxis]) == snake.direction)
+                preferredAxis = (preferredAxis == 1) ? 0 : 1;
+
+            snake.direction = movements[preferredAxis];
+
+        }else if(movements.length == 1)
+            snake.direction = movements[0];
+        else
+            snake.direction = movements[movimentsToGetFood().shuffle()[0]];
 
     }
 
