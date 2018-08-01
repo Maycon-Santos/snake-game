@@ -17,6 +17,8 @@ function Game($canvas){
         // ID of socket
         id: { writable: true },
 
+        time: { value: 0, writable: true },
+
         // Will receive the winner at the end of the game
         winner: { writable: true },
 

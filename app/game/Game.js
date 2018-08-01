@@ -125,8 +125,30 @@ Game.prototype.start = function(){
     this.addFoods();
     this.addPlayers();
 
-    // Set the status of the game
-    this.status = "playing";
+    var countdown = 3;
+
+    const changeCountdown = () => {
+
+        io.emit('countdown', countdown);
+        countdown--;
+
+    }
+
+    changeCountdown();
+
+    var countdownFn = setInterval(() => {
+
+            if(countdown < 1){
+
+                // Set the status of the game
+                this.status = "playing";
+                return clearInterval(countdownFn);
+
+            }
+
+            changeCountdown();
+
+        }, 1000);
 
 }
 

@@ -1,0 +1,27 @@
+#game{
+    #interface{
+        #label{
+            position: fixed;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+
+            text-align: center;
+
+            :not(.show){ opacity: 0; }
+
+            .show{
+                opacity: 1;
+                transition: all .3s cubic-bezier(0.16, 0.76, 0.34, 0.96);
+            }
+
+            strong{
+                color: $green-003;
+                font-size: 8rem;
+                
+                &.show{ font-size: 4rem; }
+            }
+            
+        }
+    }
+}

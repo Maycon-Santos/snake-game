@@ -19,10 +19,10 @@ function Engine(game){
 
     }
 
-    this.add = (object) => {
+    this.add = object => {
 
         objects.push(object);
-        
+                
         object.update = _object => {
             for (const key in _object) object[key] = _object[key];
             requestAnimationFrame(this.draw);

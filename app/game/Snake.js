@@ -183,6 +183,8 @@ function Snake(game, props){
     var progressed = 0;
     const movement = (deltaTime) => {
 
+        if(game.status != 'playing') return;
+
         let speed = gameProps.snakes.speed;
 
         if(this.superSpeed > 0) speed *= 1.4;

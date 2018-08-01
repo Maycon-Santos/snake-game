@@ -19,10 +19,10 @@ function Engine(game){
 
     }
 
-    this.add = (object) => {
+    this.add = object => {
 
         objects.push(object);
-        
+                
         object.update = _object => {
             for (const key in _object) object[key] = _object[key];
             requestAnimationFrame(this.draw);
@@ -97,6 +97,8 @@ function Game($canvas){
 
         // ID of socket
         id: { writable: true },
+
+        time: { value: 0, writable: true },
 
         // Will receive the winner at the end of the game
         winner: { writable: true },
@@ -531,6 +533,8 @@ function Interface(game){
 
     const $audioToggle = $('#audio-toggle');
 
+    const $label = $($interface, '#label')
+
     const snakeColor = color => gameProps.snakes.colors[color];
 
     this.dialogBox     = new DialogBox($interface);
@@ -748,6 +752,23 @@ function Interface(game){
             $el.addEventListener('click', () => game.sounds.enter.play));
 
     }
+
+    this.label = (text, type) => {
+
+        const $type = document.createElement(type == 0 ? 'span' : 'strong');
+
+        $type.innerText = text;
+
+        $label.innerHTML = '';
+        $label.appendChild($type);
+
+        setTimeout(() => $type.className = 'show', 0);
+        setTimeout(() => $type.remove(), 1000);
+
+    }
+
+    game.socket.on('countdown', n => this.label(n, 1));
+
 }
 function Snake(game, props){
 
