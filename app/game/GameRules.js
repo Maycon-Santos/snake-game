@@ -45,8 +45,10 @@ function GameRules(game){
 
                     const powerup = food.type.powerup || null;
 
-                    if(powerup && powerups[powerup])
+                    if(powerup && powerups[powerup]){
                         powerups[powerup](player, game);
+                        io.emit('show powerup', powerup);
+                    }
                         
                     food.create();
                     game.event.emit('foodEated', food.id);

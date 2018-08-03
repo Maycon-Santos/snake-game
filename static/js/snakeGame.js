@@ -691,6 +691,8 @@ function Interface(game){
 
         }
 
+        game.socket.on('delete player', () => $multiplayerLocalMenuSubmit.removeAttribute('disabled'));
+
         $multiplayerLocalMenuSubmit.addEventListener('click', () => {
             
             $multiplayerLocalMenuSubmit.setAttribute('disabled', true);
@@ -753,7 +755,7 @@ function Interface(game){
 
     }
 
-    this.label = (text, type) => {
+    this.label = (text, type, hideTime = 1000) => {
 
         const $type = document.createElement(type == 0 ? 'span' : 'strong');
 
@@ -763,11 +765,13 @@ function Interface(game){
         $label.appendChild($type);
 
         setTimeout(() => $type.className = 'show', 0);
-        setTimeout(() => $type.remove(), 1000);
+        setTimeout(() => $type.remove(), hideTime);
 
     }
 
     game.socket.on('countdown', n => this.label(n, 1));
+
+    game.socket.on('show powerup', p => this.label(p, 0, 500));
 
 }
 function Snake(game, props){

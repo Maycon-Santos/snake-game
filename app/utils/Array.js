@@ -35,13 +35,12 @@ Array.prototype.includesArr = function(arr){
 
 Array.prototype.shuffle = function(){
 
-    var n = this.length;
     var tempArr = [];
 
-    for ( var i = 0; i < n-1; i++ ) {
+    for ( var i = 0, L = this.length; i < L; i++ ) {
         // The following line removes one random element from arr
         // and pushes it onto tempArr
-        tempArr.push(this.splice(Math.floor(Math.random()*this.length),1)[0]);
+        tempArr.push(this.splice(Math.floor(Math.random() * this.length), 1)[0]);
     }
 
     // Push the remaining item onto tempArr

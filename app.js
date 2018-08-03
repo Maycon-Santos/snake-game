@@ -35,13 +35,12 @@ Array.prototype.includesArr = function(arr){
 
 Array.prototype.shuffle = function(){
 
-    var n = this.length;
     var tempArr = [];
 
-    for ( var i = 0; i < n-1; i++ ) {
+    for ( var i = 0, L = this.length; i < L; i++ ) {
         // The following line removes one random element from arr
         // and pushes it onto tempArr
-        tempArr.push(this.splice(Math.floor(Math.random()*this.length),1)[0]);
+        tempArr.push(this.splice(Math.floor(Math.random() * this.length), 1)[0]);
     }
 
     // Push the remaining item onto tempArr
@@ -546,8 +545,10 @@ function GameRules(game){
 
                     const powerup = food.type.powerup || null;
 
-                    if(powerup && powerups[powerup])
+                    if(powerup && powerups[powerup]){
                         powerups[powerup](player, game);
+                        io.emit('show powerup', powerup);
+                    }
                         
                     food.create();
                     game.event.emit('foodEated', food.id);
@@ -992,6 +993,45 @@ function snakeAI(game, snake){
             // Remove and get movement of the array
             const movement = movements.splice(movIndex, 1)[0];
 
+            if(preferredAxis == axis){
+
+                if(axis != movIndex){
+
+                    if(movIndex > axis){ // Right or down
+
+                        if(movIndex == 1){ // Right
+
+                            if(snake.direction == 'left')
+                                preferredAxis = 1;
+
+                        }else if(movIndex == 2){ // Down
+
+                            if(snake.direction == 'up')
+                                preferredAxis = 0;
+
+                        }
+
+                    }else{ // Left or up
+
+                        if(movIndex == 0){ // Left
+
+                            if(snake.direction == 'right')
+                                preferredAxis = 1;
+
+                        }else if(movIndex == 1){ // Up
+
+                            if(snake.direction == 'down')
+                                preferredAxis = 1;
+
+                        }
+
+                    }
+
+                    //preferredAxis = preferredAxis == 1 ? 0 : 1;
+                }
+
+            }
+
             // If axis equals 1 the "movements" looks like this: ['left', 'up', null]
             // So, if in the next loop the axis equals 2 the movements looks like this: ['left', 'up']
             // These moves should be the last ones the snake will think of doing
@@ -1117,6 +1157,7 @@ io.on('connection', socket => {
 
         socket.on('disconnect', () => {
             if(socket.id != game.roomCreator){
+                game.readyPlayers = 0;
                 game.playersInTheRoom.splice(enhancerId, 1);
                 io.emit('delete player', enhancerId);
                 if(game.status == 'playing'){
@@ -1213,6 +1254,8 @@ io.on('connection', socket => {
         });
 
         socket.on('ready', () => {
+
+            io.emit('teste', game.playersInTheRoom);
 
             if(game.readyPlayers < 0) game.readyPlayers = 0;
             game.readyPlayers++;

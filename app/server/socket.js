@@ -44,6 +44,7 @@ io.on('connection', socket => {
 
         socket.on('disconnect', () => {
             if(socket.id != game.roomCreator){
+                game.readyPlayers = 0;
                 game.playersInTheRoom.splice(enhancerId, 1);
                 io.emit('delete player', enhancerId);
                 if(game.status == 'playing'){
@@ -140,6 +141,8 @@ io.on('connection', socket => {
         });
 
         socket.on('ready', () => {
+
+            io.emit('teste', game.playersInTheRoom);
 
             if(game.readyPlayers < 0) game.readyPlayers = 0;
             game.readyPlayers++;

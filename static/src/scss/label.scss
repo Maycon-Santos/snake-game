@@ -21,6 +21,13 @@
                 
                 &.show{ font-size: 4rem; }
             }
+
+            span{
+                color: $green-003;
+                font-size: 2rem;
+
+                &.show{ font-size: 1rem; }
+            }
             
         }
     }
