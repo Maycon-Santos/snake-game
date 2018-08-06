@@ -594,11 +594,28 @@ const newBodyStart = id =>{
 }
 const powerups = new function(){
 
-    this.set = (powerupName, func) =>
-        this[powerupName] = func;
+    var powerups = {};
+
+    const exec = pu => function(snake, game){
+
+        for(let i = 0, L = powerups[pu].length; i < L; i++)
+            powerups[pu][i](snake, game);
+
+    }
+
+    this.on = (powerupName, func) =>{
+        
+        if(!powerups[powerupName])
+            powerups[powerupName] = [];
+
+        powerups[powerupName].push(func);
+
+        this[powerupName] = exec(powerupName);
+
+    }
 
 }
-powerups.set('freeze', (snake, game) => {
+powerups.on('freeze', (snake, game) => {
 
     game.for('players', player => {
 
@@ -609,8 +626,8 @@ powerups.set('freeze', (snake, game) => {
     });
 
 });
-powerups.set('super increase', snake => snake.increase += 5);
-powerups.set('super slow', (snake, game) => {
+powerups.on('super increase', snake => snake.increase += 5);
+powerups.on('super slow', (snake, game) => {
 
     game.for('players', player => {
 
@@ -621,11 +638,8 @@ powerups.set('super slow', (snake, game) => {
     });
 
 });
-powerups.set('super speed', snake => {
-    
-    snake.superSpeed += 50;
-
-});
+powerups.on('super speed', snake =>
+    snake.superSpeed += 50);
 function Snake(game, props){
 
     // Socket id of the player

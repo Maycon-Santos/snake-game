@@ -1,4 +1,4 @@
-powerups.set('super slow', (snake, game) => {
+powerups.on('super slow', (snake, game) => {
 
     game.for('players', player => {
 

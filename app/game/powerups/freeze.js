@@ -1,4 +1,4 @@
-powerups.set('freeze', (snake, game) => {
+powerups.on('freeze', (snake, game) => {
 
     game.for('players', player => {
 
