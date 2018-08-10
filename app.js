@@ -85,10 +85,10 @@ var mainWindow;
 electron.app.on('ready', () => {
 
     mainWindow = new electron.BrowserWindow({
-        width: 800,
-        height: 480,
-        // minWidth: 1024,
-        // minHeight: 720
+        // width: 800,
+        // height: 480,
+        width: 1024,
+        height: 720
     });
 
     mainWindow.setMenuBarVisibility(false);

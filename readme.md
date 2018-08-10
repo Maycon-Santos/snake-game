@@ -4,7 +4,7 @@ a simple snake game made with js (For study).
 
 ## Screens
 
-![alt text](https://mediaplanet.azureedge.net/images/253/54627/lala.jpg)
+![Login screen](screens/login.jpg)
 
 ### Prerequisites
 
