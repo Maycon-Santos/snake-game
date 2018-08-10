@@ -1,11 +1,20 @@
 # Snake Game
 
-a simple snake game made with js (For study).
+A simple snake game made with js (For study).
 
 ## Screens
 
-The login screen does not need a password. Serves only for identification.
+### The login screen does not need a password. Serves only for identification.
 ![Login screen](screens/login.jpg)
+
+### Choose the color of your snake
+![Login screen](screens/choose-color.jpg)
+
+### The main menu
+![Login screen](screens/main-menu.jpg)
+
+### The single player screen
+![Login screen](screens/single-player.jpg)
 
 ### Prerequisites
 
