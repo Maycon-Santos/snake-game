@@ -19,7 +19,7 @@ A simple snake game made with js (For study).
 
 ### The single player screen
 ![Multiplayer](screens/multiplayer.jpg)
-#### Play with your firend and A.I's
+#### Play with your friend and A.I's
 
 ### The single player screen
 ![Multiplayer-local](screens/multiplayer-local.jpg)
