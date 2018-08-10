@@ -14,16 +14,16 @@ A simple snake game made with js (For study).
 ![Main menu](screens/main-menu.jpg)
 
 ### The single player screen
-![Single player](screens/single-player.jpg)
+![Single player](screens/single-player.jpg) __
 You can play with A.I's (Maximum 8).
 
 ### The single player screen
-![Multiplayer](screens/multiplayer.jpg)
+![Multiplayer](screens/multiplayer.jpg) __
 Play with your firend and A.I's
 
 ### The single player screen
-![Multiplayer-local](screens/multiplayer-local.jpg)
+![Multiplayer-local](screens/multiplayer-local.jpg) __
 Play with your friends on the same network (Even those on the cell phone).
 
-### The single player screen
+### The game running
 ![In game](screens/game-running.jpg)
