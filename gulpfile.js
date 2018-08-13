@@ -84,21 +84,31 @@ gulp.task('stylesheet', () => {
 
 gulp.task('static', () => {
 
-    const files = ['dev/static/**/*'];
+    const files = ['dev/static/**/*', '!dev/static/**/*.pdf'];
 
     // Normal
     gulp.src(files, {base: 'dev/static/'})
         .pipe(gulp.dest('test/static/'));
 
     // Min
-    gulp.src(files, {base: 'dev/static/'})
-        //.pipe(htmlmin({collapseWhitespace: true}))
+    gulp.src([...files, '!dev/static/**/*.html'], {base: 'dev/static/'})
+        .pipe(gulp.dest('dist/static/'));
+
+    gulp.src('dev/static/index.html')
+        .pipe(htmlmin({collapseWhitespace: true}))
         .pipe(gulp.dest('dist/static/'));
 
 });
 
+gulp.task('icons', () =>
 
-gulp.task('default', ['client-js', 'server-js', 'stylesheet', 'static', 'watch']);
+    gulp.src('dev/icons/*')
+        .pipe(gulp.dest('dist/icons/'))
+        .pipe(gulp.dest('test/icons/'))
+
+);
+
+gulp.task('default', ['client-js', 'server-js', 'stylesheet', 'static', 'icons', 'watch']);
  
 // Watch
 gulp.task('watch', () => {
@@ -106,4 +116,5 @@ gulp.task('watch', () => {
     gulp.watch('dev/server-js/**/*.js', ['server-js']);
     gulp.watch('dev/scss/**/*.scss', ['stylesheet']);
     gulp.watch('dev/static/**/*', ['static']);
+    gulp.watch('dev/icons/*', ['icons']);
 });

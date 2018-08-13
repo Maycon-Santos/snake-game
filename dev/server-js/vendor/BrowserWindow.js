@@ -1,10 +1,12 @@
 electron.app.on('ready', () => {
 
     const mainWindow = new electron.BrowserWindow({
-        // width: 800,
-        // height: 480,
+        minWidth: 800,
+        minHeight: 480,
         width: 1024,
-        height: 720
+        height: 720,
+
+        icon: __dirname + '/icons/64x64.ico'
     });
 
     mainWindow.setMenuBarVisibility(false);
