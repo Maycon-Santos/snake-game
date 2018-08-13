@@ -17,11 +17,11 @@ A simple snake game made with js (For study).
 ![Single player](screens/single-player.jpg)
 #### You can play with A.I's (Maximum 8).
 
-### The single player screen
+### The multiplayer player screen
 ![Multiplayer](screens/multiplayer.jpg)
 #### Play with your friend and A.I's
 
-### The single player screen
+### The multiplayer-local screen
 ![Multiplayer-local](screens/multiplayer-local.jpg)
 #### Play with your friends on the same network (Even those on the cell phone).
 

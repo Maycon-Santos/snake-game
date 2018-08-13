@@ -3,66 +3,107 @@ const sourcemaps = require('gulp-sourcemaps');
 const babel = require('gulp-babel');
 const concat = require('gulp-concat');
 const uglify = require('gulp-uglify');
-const removeUseStrict = require("gulp-remove-use-strict");
+const minify = require('gulp-minify');
 const sass = require('gulp-sass');
 const cleanCSS = require('gulp-clean-css');
 const include = require("gulp-include");
- 
-gulp.task('js', () =>
-    gulp.src(['static/src/js/**/!(install-SW)*.js', '!static/src/js/serviceWorker/**/*.js', 'static/src/js/install-SW.js'])
-        //.pipe(sourcemaps.init())
-        // .pipe(babel({
-        //     presets: ['env']
-        // }))
-        .pipe(concat('snakeGame.js'))
-        //.pipe(removeUseStrict())
-        //.pipe(uglify())
-        //.pipe(sourcemaps.write('.'))
-        .pipe(gulp.dest('static/js'))
-);
+const htmlmin = require('gulp-htmlmin');
+const replace = require('gulp-replace');
 
-gulp.task('sw', () =>
-    gulp.src('static/src/js/serviceWorker/**/*.js')
+gulp.task('client-js', () => {
+
+    const files = ['dev/utils/**/*.js', 'dev/client-js/**/*.js'];
+
+    // Normal
+    gulp.src(files)
         .pipe(sourcemaps.init())
+        .pipe(concat('client.js')).pipe(sourcemaps.write('.'))
+        .pipe(gulp.dest('test/static/js/'));
+
+    // Min
+    gulp.src(files)
+        .pipe(sourcemaps.init())
+        .pipe(concat('client.js'))
         .pipe(babel({
             presets: ['env']
         }))
-        .pipe(concat('serviceWorker.js'))
-        .pipe(removeUseStrict())
         .pipe(uglify())
-        .pipe(sourcemaps.write('.'))
-        .pipe(gulp.dest('static'))
-);
+        .pipe(gulp.dest('dist/static/js/'));
 
-gulp.task('app', () =>
-    gulp.src([
-        'app/**/*.js',
-        '!app/utils/**/*.js',
-        '!app/game/**/*.js'])
-        .pipe(concat('app.js'))
-        .pipe(include())
-        .pipe(gulp.dest('.'))
-);
-
-gulp.task('sass', () =>
-    gulp.src('static/src/scss/**/*.scss')
-        .pipe(sourcemaps.init())
-        .pipe(concat('style.css'))
-        .pipe(sass({outputStyle: 'compact'}))
-        .pipe(cleanCSS())
-        .pipe(sourcemaps.write('.'))
-        .pipe(gulp.dest('static/css'))
-);
-
-// Executa todas as funções
-gulp.task('default', ['js', 'sw', 'sass', 'app', 'watch']);
-
-
-// Watch
-gulp.task('watch', function () {
-    gulp.watch('static/src/js/**/*.js', ['js', 'sw']);
-    gulp.watch('app/**/*.js', ['app']);
-    gulp.watch('static/src/scss/**/*.scss', ['sass']);
 });
 
-// npm install --save-dev gulp gulp-sourcemaps gulp-babel gulp-concat gulp-uglify babel-cli babel-core babel-preset-env
+gulp.task('server-js', () => {
+
+    const files = [
+        'dev/utils/**/*.js',
+        'dev/server-js/vendor/dependences.js',
+        'dev/server-js/vendor/**/*.js',
+        'dev/server-js/init.js'
+    ];
+
+    // Normal
+    gulp.src(files)
+        .pipe(concat('init.js'))
+        .pipe(include())
+        .pipe(replace('{static-folder}', 'test/static/'))
+        .pipe(gulp.dest('test/'));
+
+    // Min
+    gulp.src(files)
+        .pipe(concat('init.js'))
+        .pipe(include())
+        .pipe(babel({
+            presets: ['env']
+        }))
+        .pipe(uglify())
+        .pipe(replace('{static-folder}', 'dist/static/'))
+        .pipe(gulp.dest('dist/'));
+
+});
+
+gulp.task('stylesheet', () => {
+
+    const files = ['dev/scss/vendor/**/*.scss', 'dev/scss/**/*.scss'];
+
+    // Normal
+    gulp.src(files)
+        .pipe(sourcemaps.init())
+        .pipe(concat('stylesheet.css'))
+        .pipe(sass({outputStyle: 'compact'}))
+        .pipe(sourcemaps.write('.'))
+        .pipe(gulp.dest('test/static/css/'));
+
+    // Min
+    gulp.src(files)
+        .pipe(concat('stylesheet.css'))
+        .pipe(sass({outputStyle: 'compact'}))
+        .pipe(cleanCSS())
+        .pipe(gulp.dest('dist/static/css/'));
+
+});
+
+gulp.task('static', () => {
+
+    const files = ['dev/static/**/*'];
+
+    // Normal
+    gulp.src(files, {base: 'dev/static/'})
+        .pipe(gulp.dest('test/static/'));
+
+    // Min
+    gulp.src(files, {base: 'dev/static/'})
+        //.pipe(htmlmin({collapseWhitespace: true}))
+        .pipe(gulp.dest('dist/static/'));
+
+});
+
+
+gulp.task('default', ['client-js', 'server-js', 'stylesheet', 'static', 'watch']);
+ 
+// Watch
+gulp.task('watch', () => {
+    gulp.watch('dev/client-js/**/*.js', ['client-js']);
+    gulp.watch('dev/server-js/**/*.js', ['server-js']);
+    gulp.watch('dev/scss/**/*.scss', ['stylesheet']);
+    gulp.watch('dev/static/**/*', ['static']);
+});

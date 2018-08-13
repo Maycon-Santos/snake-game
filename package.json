@@ -2,12 +2,10 @@
   "name": "snake-game",
   "version": "1.0.0",
   "description": "A simple snake game with javascript.",
-  "main": "app.js",
+  "main": "dist/init.js",
   "dependencies": {
     "electron": "^2.0.7",
     "express": "^4.16.3",
-    "gulp-include": "^2.3.1",
-    "hoek": "^5.0.3",
     "internal-ip": "^3.0.1",
     "os": "^0.1.1",
     "socket.io": "^2.1.1"
@@ -20,15 +18,20 @@
     "gulp-babel": "^7.0.1",
     "gulp-clean-css": "^3.10.0",
     "gulp-concat": "^2.6.1",
-    "gulp-remove-use-strict": "0.0.2",
+    "gulp-htmlmin": "^4.0.0",
+    "gulp-include": "^2.3.1",
+    "gulp-minify": "^3.1.0",
+    "gulp-replace": "^1.0.0",
+    "gulp-replace-src": "0.0.1",
     "gulp-sass": "^4.0.1",
     "gulp-sourcemaps": "^2.6.4",
     "gulp-uglify": "^3.0.1",
+    "hoek": "^5.0.3",
     "sass": "^1.10.4"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "electron ."
+    "test": "electron test/.",
+    "start": "electron test/init.js"
   },
   "repository": {
     "type": "git",
