@@ -2,7 +2,7 @@
   "name": "snake-game",
   "version": "1.0.0",
   "description": "A simple snake game with javascript.",
-  "main": "dist/init.js",
+  "main": "test/init.js",
   "dependencies": {
     "express": "^4.16.3",
     "internal-ip": "^3.0.1",
@@ -30,8 +30,7 @@
     "sass": "^1.10.4"
   },
   "scripts": {
-    "test": "electron test/.",
-    "start": "electron test/init.js"
+    "test": "electron ."
   },
   "repository": {
     "type": "git",

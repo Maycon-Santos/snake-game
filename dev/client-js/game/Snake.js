@@ -22,7 +22,7 @@ function Snake(game, props){
                 game.interface.listPlayersInGame();
             }
         }
-    })
+    });
 
     this.merge(props);
 

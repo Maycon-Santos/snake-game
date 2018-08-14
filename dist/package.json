@@ -7,15 +7,13 @@
     "express": "^4.16.3",
     "internal-ip": "^3.0.1",
     "os": "^0.1.1",
-    "socket.io": "^2.1.1"
+    "socket.io": "^2.1.1",
+    "electron": "^2.0.7"
   },
-  "devDependencies": {
-    "electron": "^2.0.7",
-    "electron-builder": "^20.27.1"
-  },
+  "devDependencies": {},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build:win64": "build --win --x64"
+    "start": "electron ."
   },
   "author": "Maycon Santos",
   "license": "ISC",
@@ -25,5 +23,9 @@
       "target": "nsis",
       "icon": "dev/icons/256x256.ico"
     }
+  },
+  "bin": "init.js",
+  "pkg": {
+    "static": "static/**/*"
   }
 }
