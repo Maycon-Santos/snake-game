@@ -471,6 +471,124 @@ Game.prototype.socketEvents = function(){
     });
 
 }
+function Snake(game, props){
+
+    this.id = null;
+
+    // Id in relation to the player in the machine itself (0 is player 1, 1 is player 2)
+    this.idLocal = null;
+
+    this.enhancerId = null;
+
+    this.nickname = null;
+
+    this.body = [];
+
+    this.color = 0;
+
+    let killed = false;
+    Object.defineProperty(this, 'killed', {
+        get: () => killed,
+        set: Bool => {
+            if(killed = Bool){
+                game.sounds.died.play;
+                game.interface.listPlayersInGame();
+            }
+        }
+    });
+
+    this.merge(props);
+
+    { // Multiplayer
+
+        if(this.idLocal == 0) this.touchArea = 'all';
+
+        if(this.idLocal == 1){
+            game.players[0].touchArea = 'right';
+            this.touchArea = 'left';
+        }
+        
+    }
+
+    game.engine.add(this);
+
+    // Set controlls
+    if(!isNaN(this.idLocal)) new SnakeControls(this, game);
+
+    // Render
+    this.draw = () => {
+
+        if(this.killed) return;
+
+        game.ctx.fillStyle = gameProps.snakes.colors[this.color];
+
+        this.body.forEach(bodyFragment => {
+            game.ctx.fillRect(
+                bodyFragment[0] * game.tileSize,
+                bodyFragment[1] * game.tileSize,
+                game.tileSize,
+                game.tileSize
+            );
+        });
+
+    }
+
+}
+function Sounds(game){
+
+    const $canvas = game.ctx.canvas;
+
+    const path = 'sounds';
+
+    const soundMap = {
+        menu: 'menu.wav',
+        back: 'back.wav',
+        prev: 'prev.wav',
+        next: 'next.wav',
+        died: 'died.wav',
+        ate: 'ate.wav',
+        enter: 'enter.wav',
+        gameOver: 'game-over.wav'
+    }
+
+    const addAudioPlayers = (() => {
+
+        const keys = Object.keys(soundMap);
+        for (let i = 0, L = keys.length; i < L; i++) {
+            const key = keys[i];
+            const sound = soundMap[key];
+
+            let audioExtension = sound.split('.').lastItem();
+
+            let $player = document.createElement('audio');
+            $player.className = 'sound';
+            $player.src = `${path}/${sound}`;
+            $player.setAttribute('type', `audio/${audioExtension == 'mp3' ? 'mpeg' : audioExtension}`);
+
+            $canvas.parentNode.insertBefore($player, $canvas);
+
+            this[key] = {};
+
+            Object.defineProperties(this[key], {
+
+                play: {
+                    get: () => {
+                        if(!game.mute) $player.play();
+                    }
+                },
+
+                volume: {
+                    get: () => $player.volume,
+                    set: v => $player.volume = v
+                }
+
+            });
+
+        }
+
+    })();
+
+}
 var gameProps = {}
 function gestureViewer(game){
 
@@ -842,69 +960,6 @@ function Interface(game){
     game.socket.on('show powerup', p => this.label(p, 0, 500));
 
 }
-function Snake(game, props){
-
-    this.id = null;
-
-    // Id in relation to the player in the machine itself (0 is player 1, 1 is player 2)
-    this.idLocal = null;
-
-    this.enhancerId = null;
-
-    this.nickname = null;
-
-    this.body = [];
-
-    this.color = 0;
-
-    let killed = false;
-    Object.defineProperty(this, 'killed', {
-        get: () => killed,
-        set: Bool => {
-            if(killed = Bool){
-                game.sounds.died.play;
-                game.interface.listPlayersInGame();
-            }
-        }
-    });
-
-    this.merge(props);
-
-    { // Multiplayer
-
-        if(this.idLocal == 0) this.touchArea = 'all';
-
-        if(this.idLocal == 1){
-            game.players[0].touchArea = 'right';
-            this.touchArea = 'left';
-        }
-        
-    }
-
-    game.engine.add(this);
-
-    // Set controlls
-    if(!isNaN(this.idLocal)) new SnakeControls(this, game);
-
-    // Render
-    this.draw = () => {
-
-        if(this.killed) return;
-
-        game.ctx.fillStyle = gameProps.snakes.colors[this.color];
-
-        this.body.forEach(bodyFragment => {
-            game.ctx.fillRect(
-                bodyFragment[0] * game.tileSize,
-                bodyFragment[1] * game.tileSize,
-                game.tileSize,
-                game.tileSize
-            );
-        });
-
-    }
-
-}
 function SnakeControls(snake, game){
 
     // Emit movement to server
@@ -990,61 +1045,6 @@ function SnakeControls(snake, game){
             }, { passive: false });
         }
     }
-
-}
-function Sounds(game){
-
-    const $canvas = game.ctx.canvas;
-
-    const path = 'sounds';
-
-    const soundMap = {
-        menu: 'menu.wav',
-        back: 'back.wav',
-        prev: 'prev.wav',
-        next: 'next.wav',
-        died: 'died.wav',
-        ate: 'ate.wav',
-        enter: 'enter.wav',
-        gameOver: 'game-over.wav'
-    }
-
-    const addAudioPlayers = (() => {
-
-        const keys = Object.keys(soundMap);
-        for (let i = 0, L = keys.length; i < L; i++) {
-            const key = keys[i];
-            const sound = soundMap[key];
-
-            let audioExtension = sound.split('.').lastItem();
-
-            let $player = document.createElement('audio');
-            $player.className = 'sound';
-            $player.src = `${path}/${sound}`;
-            $player.setAttribute('type', `audio/${audioExtension == 'mp3' ? 'mpeg' : audioExtension}`);
-
-            $canvas.parentNode.insertBefore($player, $canvas);
-
-            this[key] = {};
-
-            Object.defineProperties(this[key], {
-
-                play: {
-                    get: () => {
-                        if(!game.mute) $player.play();
-                    }
-                },
-
-                volume: {
-                    get: () => $player.volume,
-                    set: v => $player.volume = v
-                }
-
-            });
-
-        }
-
-    })();
 
 }
 function DialogBox($interface){

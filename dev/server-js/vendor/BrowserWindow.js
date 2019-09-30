@@ -6,10 +6,10 @@ electron.app.on('ready', () => {
         width: 1024,
         height: 720,
 
-        icon: __dirname + '/icons/64x64.ico'
+        icon: __dirname + '/icons/64x64.ico',
     });
 
-    mainWindow.setMenuBarVisibility(false);
+    // mainWindow.setMenuBarVisibility(false);
 
     mainWindow.webContents.openDevTools();
 
