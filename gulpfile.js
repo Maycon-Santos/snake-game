@@ -38,6 +38,7 @@ gulp.task('server-js', () => {
         'dev/utils/**/*.js',
         'dev/server-js/vendor/dependences.js',
         'dev/server-js/vendor/**/*.js',
+        'dev/server-js/game/**/*.js',
         'dev/server-js/init.js'
     ];
 
