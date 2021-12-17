@@ -8,7 +8,7 @@
     "internal-ip": "^3.0.1",
     "natives": "^1.1.6",
     "os": "^0.1.1",
-    "socket.io": "^2.1.1"
+    "socket.io": "^2.4.0"
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",
