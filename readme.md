@@ -2,6 +2,26 @@
 
 A simple snake game made with js (For study).
 
+## How to setup and run
+
+### requirements
+
+- Node.js 10.x
+- Yarn 1.x
+
+### setup
+
+```sh
+yarn build
+```
+
+
+### run
+
+```sh
+yarn start
+```
+
 ## Screens
 
 ### The login screen does not need a password. Serves only for identification.

@@ -31,7 +31,8 @@
     "sass": "^1.10.4"
   },
   "scripts": {
-    "test": "electron ."
+    "start": "electron .",
+    "build": "gulp"
   },
   "repository": {
     "type": "git",
