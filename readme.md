@@ -6,7 +6,7 @@ A simple snake game made with js (For study).
 
 ### requirements
 
-- Node.js 10.x
+- Node.js 14.x
 - Yarn 1.x
 
 ### setup

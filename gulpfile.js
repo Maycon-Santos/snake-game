@@ -70,14 +70,14 @@ gulp.task('stylesheet', () => {
     gulp.src(files)
         .pipe(sourcemaps.init())
         .pipe(concat('stylesheet.css'))
-        .pipe(sass({outputStyle: 'compact'}))
+        .pipe(sass({ outputStyle: 'compact' }))
         .pipe(sourcemaps.write('.'))
         .pipe(gulp.dest('test/static/css/'));
 
     // Min
     gulp.src(files)
         .pipe(concat('stylesheet.css'))
-        .pipe(sass({outputStyle: 'compact'}))
+        .pipe(sass({ outputStyle: 'compact' }))
         .pipe(cleanCSS())
         .pipe(gulp.dest('dist/static/css/'));
 
@@ -88,15 +88,15 @@ gulp.task('static', () => {
     const files = ['dev/static/**/*', '!dev/static/**/*.pdf'];
 
     // Normal
-    gulp.src(files, {base: 'dev/static/'})
+    gulp.src(files, { base: 'dev/static/' })
         .pipe(gulp.dest('test/static/'));
 
     // Min
-    gulp.src([...files, '!dev/static/**/*.html'], {base: 'dev/static/'})
+    gulp.src([...files, '!dev/static/**/*.html'], { base: 'dev/static/' })
         .pipe(gulp.dest('dist/static/'));
 
     gulp.src('dev/static/index.html')
-        .pipe(htmlmin({collapseWhitespace: true}))
+        .pipe(htmlmin({ collapseWhitespace: true }))
         .pipe(gulp.dest('dist/static/'));
 
 });
@@ -109,13 +109,12 @@ gulp.task('icons', () =>
 
 );
 
-gulp.task('default', ['client-js', 'server-js', 'stylesheet', 'static', 'icons', 'watch']);
- 
-// Watch
 gulp.task('watch', () => {
-    gulp.watch('dev/client-js/**/*.js', ['client-js']);
-    gulp.watch('dev/server-js/**/*.js', ['server-js']);
-    gulp.watch('dev/scss/**/*.scss', ['stylesheet']);
-    gulp.watch('dev/static/**/*', ['static']);
-    gulp.watch('dev/icons/*', ['icons']);
+    gulp.watch('dev/client-js/**/*.js', gulp.series('client-js'));
+    gulp.watch('dev/server-js/**/*.js', gulp.series('server-js'));
+    gulp.watch('dev/scss/**/*.scss', gulp.series('stylesheet'));
+    gulp.watch('dev/static/**/*', gulp.series('static'));
+    gulp.watch('dev/icons/*', gulp.series('icons'));
 });
+
+gulp.task('default', gulp.parallel('client-js', 'server-js', 'stylesheet', 'static', 'icons', 'watch'));
